@@ -19,6 +19,9 @@ class Settings:
             getenv("REFRESH_COOKIE_HTTPONLY", "true").lower() == "true"
         )
         self.refresh_cookie_samesite = getenv("REFRESH_COOKIE_SAMESITE", "strict")
+        self.max_upload_size_bytes = int(
+            getenv("MAX_UPLOAD_SIZE_BYTES", str(10 * 1024 * 1024))
+        )
 
 
 @lru_cache(maxsize=1)

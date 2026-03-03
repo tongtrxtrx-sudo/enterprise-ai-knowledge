@@ -1,6 +1,93 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-003
+TASK NAME: Build Secure Uploading
+STATUS: complete
+TIMESTAMP: 2026-03-03T14:52:49Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Upload must reject >10MB files, executable signatures, and unsafe filenames.
+   Identical hash in same folder returns 409, same name with new hash creates a
+   new version, and successful uploads trigger parse_status=processing
+   asynchronously.
+
+STEPS PROVIDED:
+   1. Create file validators, upload endpoint, and dedup/version persistence models
+   2. Add MinIO object layout and checksum-based duplicate handling tests
+   3. Trigger parse task asynchronously and persist initial parse_status state
+   4. Return deterministic responses for duplicate, reject, and success paths
+
+STEPS EXECUTED:
+   ✓ Step 1: Added upload validators (`is_safe_filename`, executable magic checks), `/uploads` endpoint, and `UploadRecord` persistence model with dedup/version constraints
+   ✓ Step 2: Added upload flow tests validating checksum duplicate 409 behavior and deterministic MinIO-style object key layout
+   ✓ Step 3: Added async parse trigger via `BackgroundTasks` and persisted initial `parse_status="processing"` on successful insert
+   ✓ Step 4: Standardized deterministic JSON responses for reject (`file_too_large`, `unsafe_filename`, `executable_signature`), duplicate (`duplicate_checksum`), and success (`uploaded`) paths
+
+WORK COMPLETED:
+   1. Implemented upload validation helpers in `backend/src/app/upload_validation.py` for filename safety and executable magic-number detection
+   2. Added `UploadRecord` model with uniqueness rules for `(folder, checksum_sha256)` and `(folder, filename, version)` in `backend/src/app/models.py`
+   3. Added `/uploads` multipart endpoint in `backend/src/app/routers/upload.py` with size/type/name checks, checksum deduplication, deterministic object key generation, and version incrementing
+   4. Added parse orchestration hook (`schedule_parse_task`) with asynchronous trigger through FastAPI `BackgroundTasks`
+   5. Added typed success schema `UploadSuccessResponse` and integrated upload router in app startup
+   6. Added comprehensive upload tests in `backend/tests/test_upload_flow.py` and completed full backend regression suite
+   7. Executed strict TDD workflow artifacts and archived reports under `completed-tdd-archives/tdd-20260303-145241/`
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - backend/pyproject.toml (modified)
+   - backend/src/app/config.py (modified)
+   - backend/src/app/main.py (modified)
+   - backend/src/app/models.py (modified)
+   - backend/src/app/routers/upload.py (created)
+   - backend/src/app/schemas/upload.py (created)
+   - backend/src/app/upload_validation.py (created)
+   - backend/tests/test_upload_flow.py (created)
+   - docs/scenario/upload_validation_safety.md (created, then updated status)
+   - docs/scenario/upload_dedup_and_versioning.md (created, then updated status)
+   - docs/scenario/upload_success_parse_processing.md (created, then updated status)
+   - completed-tdd-archives/tdd-20260303-145241/step-1.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-145241/step-2.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-145241/step-3.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-145241/step-4.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-145241/step-5.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-145241/step-6.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-145241/step-7.md (created via archive)
+
+KEY DECISIONS:
+   - Used SHA-256 checksum as canonical dedup key scoped by folder
+   - Used deterministic MinIO-style key format: `{folder}/{checksum}/v{version}/{filename}`
+   - Treated unsafe filenames conservatively by blocking path traversal markers, separators, leading dot names, and non-whitelisted characters
+   - Used `BackgroundTasks` to guarantee asynchronous parse-trigger execution within request lifecycle
+   - Returned explicit machine-readable `code` fields for deterministic reject/duplicate/success handling
+
+BLOCKERS RESOLVED:
+   - Added `python-multipart` dependency required for FastAPI multipart upload parsing
+
+REMAINING ISSUES:
+   - None
+
+NOTES FOR NEXT AGENT:
+   - `schedule_parse_task` is currently a stub hook; wire it to real queue/worker in parser integration task
+   - Upload endpoint currently validates executable signatures by magic headers only; deeper MIME/content scanning can be added later if needed
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Reject files larger than 10MB - VERIFIED (`test_rejects_file_larger_than_10mb`)
+   ✓ Criterion 2: Reject executable signatures - VERIFIED (`test_rejects_executable_signature`)
+   ✓ Criterion 3: Reject unsafe filenames - VERIFIED (`test_rejects_unsafe_filename`)
+   ✓ Criterion 4: Identical hash in same folder returns 409 - VERIFIED (`test_duplicate_checksum_in_same_folder_returns_409`)
+   ✓ Criterion 5: Same name with new hash creates new version - VERIFIED (`test_same_name_new_hash_creates_new_version`)
+   ✓ Criterion 6: Success triggers asynchronous parse flow with parse_status=processing persisted - VERIFIED (`test_success_persists_minio_layout_and_processing_status`, `test_success_triggers_parse_task_asynchronously`)
+
+TESTING RESULTS:
+   ✓ Red phase: `uv run --group dev pytest tests/test_upload_flow.py -q` -> 7 failures expected before implementation
+   ✓ Upload suite: `uv run --group dev pytest tests/test_upload_flow.py -q` -> 7/7 passing
+   ✓ Full backend suite: `uv run --group dev pytest tests -q` -> 21/21 passing
+
+================================================================================
+
+================================================================================
 TASK ID: task-002
 TASK NAME: Implement Authentication Core
 STATUS: complete
