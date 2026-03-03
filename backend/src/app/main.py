@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.db import Base, get_engine
 from app.routers.auth import router as auth_router
+from app.routers.editing import router as editing_router
 from app.routers.upload import router as upload_router
 
 
@@ -22,6 +23,7 @@ def create_app() -> FastAPI:
     Base.metadata.create_all(bind=get_engine())
     app = FastAPI(title="kb-backend")
     app.include_router(auth_router)
+    app.include_router(editing_router)
     app.include_router(upload_router)
 
     @app.get("/health")

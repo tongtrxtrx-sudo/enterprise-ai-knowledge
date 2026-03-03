@@ -1,6 +1,86 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-005
+TASK NAME: Add Online Editing
+STATUS: complete
+TIMESTAMP: 2026-03-03T15:17:29Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Only owner, admin, dept manager, and shared-edit grantees can open edit
+   sessions. Callback must reject stale version tokens and duplicate saves
+   without creating duplicate versions. Save success must append to
+   file_versions, update files.current_version, and queue reindex immediately.
+
+STEPS PROVIDED:
+   1. Add edit session table or cache map with version and token binding
+   2. Expose edit start endpoint that validates permission and returns editor config
+   3. Handle callback status 2/6 with version checks and new version writes
+   4. Trigger immediate parse reindex after successful callback save
+
+STEPS EXECUTED:
+   ✓ Step 1: Added `doc_edit_sessions` table with token and source-version binding in `backend/src/app/models.py`
+   ✓ Step 2: Added `POST /files/{file_id}/edit/start` endpoint with role/share permission checks in `backend/src/app/routers/editing.py`
+   ✓ Step 3: Added callback handling for status 2/6 with stale-version and duplicate-callback rejection, then version append in `backend/src/app/routers/editing.py`
+   ✓ Step 4: Added immediate reindex queue hook and persisted queue rows (`reindex_jobs`) on successful callback save
+
+WORK COMPLETED:
+   1. Extended data model with editing domain tables: `files`, `file_versions`, `file_shares`, `doc_edit_sessions`, and `reindex_jobs`
+   2. Extended `users` model with `department` field to support department-manager permission checks
+   3. Implemented editing router with start endpoint returning ONLYOFFICE-style editor config payload and session token
+   4. Implemented callback endpoint that handles status 2/6, rejects stale sessions, rejects duplicate saves, appends new file version, and updates file current version
+   5. Implemented immediate reindex queueing on successful callback save
+   6. Added dedicated editing tests covering permissions, stale-version rejection, duplicate-save idempotency, and save persistence behavior
+   7. Completed TDD artifacts and archived reports under `completed-tdd-archives/tdd-20260303-231724/`
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - backend/src/app/models.py (modified)
+   - backend/src/app/main.py (modified)
+   - backend/src/app/routers/editing.py (created)
+   - backend/src/app/schemas/editing.py (created)
+   - backend/tests/editing/test_onlyoffice_editing.py (created)
+   - docs/scenario/edit_start_permission_gate.md (created, then updated status)
+   - docs/scenario/edit_callback_version_safety.md (created, then updated status)
+   - docs/scenario/edit_callback_persist_and_reindex.md (created, then updated status)
+   - completed-tdd-archives/tdd-20260303-231724/step-1.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-231724/step-2.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-231724/step-3.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-231724/step-4.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-231724/step-5.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-231724/step-6.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-231724/step-7.md (created via archive)
+
+KEY DECISIONS:
+   - Used persistent DB table (`doc_edit_sessions`) instead of cache map for durable callback token/version validation
+   - Modeled share-edit permission with explicit `file_shares.can_edit` and enforced it server-side on edit start
+   - Returned explicit 409 rejection for stale-version and duplicate-callback cases to make callback safety behavior deterministic
+   - Stored immediate reindex intent in `reindex_jobs` to provide verifiable queue side-effect without external worker dependency
+
+BLOCKERS RESOLVED:
+   - Initial RED tests failed with missing `department` support in `users`; resolved by extending model and implementing full editing schema/endpoints
+
+REMAINING ISSUES:
+   - Reindex worker consumption is not implemented in this task; queue records are persisted for downstream worker handling
+
+NOTES FOR NEXT AGENT:
+   - Callback currently uses request payload `content` as persisted version content; integrate real ONLYOFFICE file URL fetch when storage adapter is ready
+   - If enforcing strict single-active-session-per-file policy later, add unique active-session constraint and session-expiration cleanup
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Only owner/admin/dept manager/shared-edit grantees can open edit sessions - VERIFIED (`test_edit_start_permissions_allow_owner_admin_manager_and_shared`, `test_edit_start_rejects_unauthorized_users`)
+   ✓ Criterion 2: Callback rejects stale version tokens and duplicate saves without duplicate versions - VERIFIED (`test_callback_rejects_stale_version_tokens`, `test_callback_rejects_duplicate_save_without_duplicate_versions`)
+   ✓ Criterion 3: Save success appends `file_versions`, updates `files.current_version`, and queues reindex immediately - VERIFIED (`test_callback_status6_persists_new_version_and_queues_reindex`)
+
+TESTING RESULTS:
+   ✓ Red phase: `uv run --group dev pytest tests/editing/test_onlyoffice_editing.py -q` -> failing as expected before implementation
+   ✓ Editing suite: `uv run --group dev pytest tests/editing/test_onlyoffice_editing.py -q` -> 5/5 passing
+   ✓ Full backend regression: `uv run --group dev pytest tests -q` -> 30/30 passing
+
+================================================================================
+
+================================================================================
 TASK ID: task-004
 TASK NAME: Create Parsing Pipeline
 STATUS: complete
