@@ -217,7 +217,7 @@
         ]
       },
       "skills": ["testing-safe-protocol", "verification-before-completion"],
-      "complete": false
+      "complete": true
     }
   ]
 }
