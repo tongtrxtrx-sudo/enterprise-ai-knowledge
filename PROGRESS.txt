@@ -1,6 +1,80 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-006
+TASK NAME: Implement Permission Governance
+STATUS: complete
+TIMESTAMP: 2026-03-03T15:25:25Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Default sharing must be editable unless explicitly set can_edit=false.
+   Retrieval and folder listing must only expose files owned, authorized by
+   folder rule, or public. Admin-only APIs must reject non-admin users, and
+   every permission-related mutation must create audit records.
+
+STEPS PROVIDED:
+   1. Create folder permission CRUD and default shared-can-edit behavior
+   2. Sync permission grants into doc_chunks.read_allow during updates
+   3. Add admin-only endpoints with strict role guards and audit logging
+   4. Add policy tests for isolation and cross-user access boundaries
+
+STEPS EXECUTED:
+   ✓ Step 1: Added admin-scoped folder permission CRUD endpoints with default `can_edit=True` in `backend/src/app/routers/admin.py`
+   ✓ Step 2: Implemented permission-to-chunk ACL synchronization (`build_upload_read_allow`, `sync_folder_read_allow`) and integrated into parse/update flows
+   ✓ Step 3: Added strict admin role guards (`require_roles("admin")`) and audit log persistence for permission mutations
+   ✓ Step 4: Added governance policy tests covering default share-edit behavior, retrieval/listing isolation, non-admin rejection, and audit emission
+
+WORK COMPLETED:
+   1. Extended data model with `folder_permissions` and `audit_logs`, and added upload visibility ownership fields (`owner_id`, `is_public`)
+   2. Added permission service layer for ACL token generation, retrieval principals, visibility checks, folder ACL sync, and audit-write helper
+   3. Added admin router endpoints for folder permission CRUD and upload visibility update, all guarded by admin-only role checks
+   4. Added user-facing visibility listing endpoint (`GET /permissions/files`) constrained to owned/granted/public files
+   5. Updated parsing chunk persistence to derive `doc_chunks.read_allow` from owner/public/folder grants
+   6. Added dedicated admin and permission test suites and validated full backend regression
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - backend/src/app/models.py (modified)
+   - backend/src/app/main.py (modified)
+   - backend/src/app/indexing/tasks.py (modified)
+   - backend/src/app/permissions/__init__.py (created)
+   - backend/src/app/permissions/service.py (created)
+   - backend/src/app/routers/admin.py (created)
+   - backend/src/app/routers/permissions.py (created)
+   - backend/src/app/schemas/permissions.py (created)
+   - backend/tests/admin/test_role_guard.py (created)
+   - backend/tests/permissions/test_governance.py (created)
+
+KEY DECISIONS:
+   - Modeled ACL propagation with deterministic token strings in `doc_chunks.read_allow` (`owner:{id}`, `user:{id}`, `public`)
+   - Kept folder permission mutation APIs under `/admin/*` to enforce strict admin governance boundary
+   - Applied ACL sync both in parse pipeline and permission mutation paths to keep retrieval visibility consistent
+   - Recorded permission mutations as first-class audit events (`folder_permission_created/updated/deleted`, `upload_visibility_updated`)
+
+BLOCKERS RESOLVED:
+   - None
+
+REMAINING ISSUES:
+   - Upload endpoint currently defaults `owner_id=0`; ownership-aware upload assignment should be wired when authenticated upload flow is introduced
+
+NOTES FOR NEXT AGENT:
+   - If later adding non-admin sharing, reuse `sync_folder_read_allow` after any grant/revoke writes to avoid stale retrieval ACLs
+   - Retrieval SQL still depends on caller-provided principals; use `get_retrieval_principals()` when wiring authenticated retrieval API route
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Default sharing editable unless `can_edit=false` - VERIFIED (`test_default_share_can_edit_true_unless_explicit_false`)
+   ✓ Criterion 2: Retrieval and listing expose only owned/granted/public files - VERIFIED (`test_folder_listing_and_retrieval_only_expose_owned_granted_or_public`)
+   ✓ Criterion 3: Admin-only APIs reject non-admin users - VERIFIED (`test_admin_folder_permission_api_rejects_non_admin`)
+   ✓ Criterion 4: Permission mutations create audit records and sync ACL - VERIFIED (`test_permission_mutations_sync_chunks_and_create_audit_logs`)
+
+TESTING RESULTS:
+   ✓ Targeted governance tests: `uv run --group dev pytest tests/admin/test_role_guard.py tests/permissions/test_governance.py -q` -> 4/4 passing
+   ✓ Full backend regression: `uv run --group dev pytest tests -q` -> 34/34 passing
+
+================================================================================
+
+================================================================================
 TASK ID: task-005
 TASK NAME: Add Online Editing
 STATUS: complete

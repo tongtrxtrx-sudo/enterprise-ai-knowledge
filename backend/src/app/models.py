@@ -58,6 +58,10 @@ class UploadRecord(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     folder: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    owner_id: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, index=True
+    )
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     filename: Mapped[str] = mapped_column(String(256), nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     checksum_sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
@@ -212,6 +216,44 @@ class ReindexJob(Base):
         ForeignKey("file_versions.id", ondelete="CASCADE"), nullable=False, index=True
     )
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="queued")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+
+
+class FolderPermission(Base):
+    __tablename__ = "folder_permissions"
+    __table_args__ = (
+        UniqueConstraint(
+            "folder", "grantee_user_id", name="uq_folder_permission_grantee"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    folder: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    grantee_user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    can_edit: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    actor_user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    action: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    target_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    target_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    detail: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )

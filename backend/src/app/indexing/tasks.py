@@ -9,6 +9,7 @@ from app.db import get_session_factory
 from app.indexing.chunker import chunk_markdown
 from app.indexing.embedding import embed_texts
 from app.models import DocChunk, IndexTree, UploadRecord
+from app.permissions.service import build_upload_read_allow
 
 try:
     from markitdown import MarkItDown
@@ -40,17 +41,13 @@ def parse_to_markdown(raw_text: str) -> str:
         return stripped
 
 
-def _serialize_read_allow(upload: UploadRecord) -> str:
-    # Keep permission token deterministic for future retrieval predicates.
-    return f"|folder:{upload.folder}|"
-
-
 def _upsert_chunks(session, upload: UploadRecord, markdown: str) -> list[DocChunk]:
     chunks = chunk_markdown(markdown)
     if not chunks:
         chunks = [markdown] if markdown else [""]
 
     now = datetime.now(UTC)
+    read_allow = build_upload_read_allow(session, upload)
     saved_rows: list[DocChunk] = []
     for idx, chunk in enumerate(chunks):
         row = session.scalar(
@@ -66,14 +63,14 @@ def _upsert_chunks(session, upload: UploadRecord, markdown: str) -> list[DocChun
                 content=chunk,
                 content_tsv=chunk.lower(),
                 vector_ready=False,
-                read_allow=_serialize_read_allow(upload),
+                read_allow=read_allow,
                 updated_at=now,
             )
             session.add(row)
         else:
             row.content = chunk
             row.content_tsv = chunk.lower()
-            row.read_allow = _serialize_read_allow(upload)
+            row.read_allow = read_allow
             row.updated_at = now
         saved_rows.append(row)
 
