@@ -2,6 +2,9 @@ import os
 
 from fastapi import FastAPI
 
+from app.db import Base, get_engine
+from app.routers.auth import router as auth_router
+
 
 DEFAULT_SERVICE_NAME = "kb-backend"
 DEFAULT_VERSION = "2.1.0"
@@ -15,7 +18,9 @@ def runtime_metadata() -> dict[str, str]:
 
 
 def create_app() -> FastAPI:
+    Base.metadata.create_all(bind=get_engine())
     app = FastAPI(title="kb-backend")
+    app.include_router(auth_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:

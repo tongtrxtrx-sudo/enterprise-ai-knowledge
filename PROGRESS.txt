@@ -1,4 +1,81 @@
 ================================================================================
+
+================================================================================
+TASK ID: task-002
+TASK NAME: Implement Authentication Core
+STATUS: complete
+TIMESTAMP: 2026-03-03T14:43:38Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Login must return access and refresh tokens with secure cookie flags. Refresh
+   flow must fail for blacklisted JTI or stale token_version. Logout must
+   persist refresh JTI in PostgreSQL. Role checks must reject unauthorized access
+   by default.
+
+STEPS PROVIDED:
+   1. Create auth schemas, routers, and persistence models for users and token blacklist
+   2. Write login refresh logout tests for token rotation and blacklist behavior
+   3. Implement JWT issuance, refresh cookie handling, and logout invalidation
+   4. Integrate role and version checks in authentication middleware
+
+STEPS EXECUTED:
+   ✓ Step 1: Added SQLAlchemy models (`User`, `RefreshTokenBlacklist`), auth schemas, and `/auth` router module
+   ✓ Step 2: Added `backend/tests/test_auth_flow.py` covering login, refresh blacklist rejection, stale token version rejection, logout persistence, and role authorization failure
+   ✓ Step 3: Implemented JWT access/refresh issuance, refresh token rotation via blacklist-on-refresh, secure cookie set/delete logic, and logout invalidation persistence
+   ✓ Step 4: Implemented bearer-token auth dependency with token-version validation and role-based guard (`require_roles`)
+
+WORK COMPLETED:
+   1. Added configuration and security primitives for JWT + password hashing in `backend/src/app/config.py` and `backend/src/app/security.py`
+   2. Added DB layer and persistence models for local accounts and refresh-token blacklist in `backend/src/app/db.py` and `backend/src/app/models.py`
+   3. Added auth request/response schemas and auth router endpoints (`/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/admin-only`)
+   4. Integrated auth router and table initialization into app factory in `backend/src/app/main.py`
+   5. Added end-to-end API tests for login/refresh/logout/role checks in `backend/tests/test_auth_flow.py`
+   6. Updated ignores to prevent generated SQLite files from polluting workspace (`.gitignore`)
+
+FILES MODIFIED:
+   - .gitignore (modified)
+   - PROGRESS.txt (modified)
+   - backend/pyproject.toml (modified)
+   - backend/src/app/main.py (modified)
+   - backend/src/app/config.py (created)
+   - backend/src/app/db.py (created)
+   - backend/src/app/models.py (created)
+   - backend/src/app/deps.py (created)
+   - backend/src/app/security.py (created)
+   - backend/src/app/routers/__init__.py (created)
+   - backend/src/app/routers/auth.py (created)
+   - backend/src/app/schemas/__init__.py (created)
+   - backend/src/app/schemas/auth.py (created)
+   - backend/tests/test_auth_flow.py (created)
+
+KEY DECISIONS:
+   - Used SQLAlchemy ORM models so persistence layer is PostgreSQL-compatible while remaining testable with SQLite fixtures
+   - Implemented refresh token rotation by blacklisting the presented refresh JTI before issuing the next refresh token
+   - Enforced token_version checks for both access and refresh validation paths to invalidate stale tokens safely
+   - Exposed role guard as dependency factory (`require_roles`) to default-deny unauthorized roles on protected routes
+
+BLOCKERS RESOLVED:
+   - Secure cookie is not automatically sent by HTTP test client; resolved by explicitly setting refresh cookie in test client state after login for refresh/logout test paths
+
+REMAINING ISSUES:
+   - None
+
+NOTES FOR NEXT AGENT:
+   - Current implementation initializes DB tables on app creation; for production PostgreSQL rollout, migrate this to explicit migration tooling (e.g., Alembic)
+   - Default `DATABASE_URL` is SQLite for local development fallback; deployment should provide PostgreSQL `DATABASE_URL`
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Login returns access + refresh tokens with secure cookie flags - VERIFIED (`test_login_returns_tokens_and_secure_cookie`)
+   ✓ Criterion 2: Refresh fails for blacklisted JTI or stale token_version - VERIFIED (`test_refresh_rejects_blacklisted_jti`, `test_refresh_rejects_stale_token_version`)
+   ✓ Criterion 3: Logout persists refresh JTI in PostgreSQL-backed persistence model - VERIFIED (`test_logout_persists_refresh_jti`, `RefreshTokenBlacklist` model/table)
+   ✓ Criterion 4: Role checks reject unauthorized access by default - VERIFIED (`test_role_check_rejects_unauthorized_user_by_default`)
+
+TESTING RESULTS:
+   ✓ Targeted auth suite: `cd backend && uv run --group dev pytest tests/test_auth_flow.py -q` -> 5/5 passing
+   ✓ Full backend suite: `cd backend && uv run --group dev pytest tests -q` -> 14/14 passing
+
+================================================================================
 TASK ID: task-001
 TASK NAME: Bootstrap Runtime Skeleton
 STATUS: complete
