@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.db import Base, get_engine
 from app.routers.admin import router as admin_router
 from app.routers.auth import router as auth_router
+from app.routers.chat import router as chat_router
 from app.routers.editing import router as editing_router
 from app.routers.permissions import router as permissions_router
 from app.routers.upload import router as upload_router
@@ -26,6 +27,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="kb-backend")
     app.include_router(auth_router)
     app.include_router(admin_router)
+    app.include_router(chat_router)
     app.include_router(editing_router)
     app.include_router(permissions_router)
     app.include_router(upload_router)

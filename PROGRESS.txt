@@ -1,6 +1,95 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-007
+TASK NAME: Implement AI Routing
+STATUS: complete
+TIMESTAMP: 2026-03-03T15:37:39Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Routing must retry up to three times on timeout, 429, and 5xx before provider
+   failover. Outbound calls must carry only sanitized text snippets and context,
+   never full file content or user identifiers. Chat responses must stream SSE
+   chunks including citations.
+
+STEPS PROVIDED:
+   1. Create provider router with timeout and retry strategy for 3 attempts
+   2. Add outbound payload sanitizer for chunk content and metadata redaction
+   3. Implement SSE chat endpoint with skill routing and citation fields
+   4. Add exact-match cache path for public query answers
+
+STEPS EXECUTED:
+   ✓ Step 1: Implemented provider router with timeout-bound attempt loop, retryable error detection (timeout/429/5xx), and provider failover after 3 attempts in `backend/src/app/ai/router.py`
+   ✓ Step 2: Implemented outbound context sanitizer with snippet truncation and user-identifier metadata redaction in `backend/src/app/ai/sanitizer.py`
+   ✓ Step 3: Added SSE streaming chat endpoint with skill routing and per-chunk citation fields in `backend/src/app/routers/chat.py` and wired in `backend/src/app/main.py`
+   ✓ Step 4: Added exact-match public answer cache path in `backend/src/app/ai/chat_service.py`
+
+WORK COMPLETED:
+   1. Added AI routing package (`app.ai`) with provider error model, deterministic provider, and retry/failover router
+   2. Added payload sanitization layer that emits only bounded snippets and safe metadata keys
+   3. Added chat service orchestration for skill selection, sanitized outbound payload construction, response normalization, and public cache lookups
+   4. Added `/chat/stream` SSE endpoint that streams chunk events with `citations`, `skill`, and `cache_hit` fields, followed by done event
+   5. Added chat request schema and app router registration
+   6. Added dedicated chat test suite (router retries/failover, sanitization, SSE streaming with citations, public exact-match cache behavior)
+   7. Completed TDD artifacts and archived reports under `completed-tdd-archives/tdd-20260303-233722/`
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - backend/src/app/main.py (modified)
+   - backend/src/app/ai/__init__.py (created)
+   - backend/src/app/ai/router.py (created)
+   - backend/src/app/ai/sanitizer.py (created)
+   - backend/src/app/ai/chat_service.py (created)
+   - backend/src/app/routers/chat.py (created)
+   - backend/src/app/schemas/chat.py (created)
+   - backend/tests/chat/test_ai_router_retry_failover.py (created)
+   - backend/tests/chat/test_outbound_payload_sanitization.py (created)
+   - backend/tests/chat/test_chat_sse_with_citations.py (created)
+   - backend/tests/chat/test_public_query_exact_match_cache.py (created)
+   - docs/scenario/ai_router_retry_failover.md (created, then updated status)
+   - docs/scenario/outbound_payload_sanitization.md (created, then updated status)
+   - docs/scenario/chat_sse_with_citations.md (created, then updated status)
+   - docs/scenario/public_query_exact_match_cache.md (created, then updated status)
+   - completed-tdd-archives/tdd-20260303-233722/step-1.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-233722/step-2.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-233722/step-3.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-233722/step-4.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-233722/step-5.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-233722/step-6.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-233722/step-7.md (created via archive)
+
+KEY DECISIONS:
+   - Interpreted "retry up to three times" as three attempts per provider before failover
+   - Used explicit retryability rules: timeout, HTTP 429, and HTTP 5xx only
+   - Enforced outbound sanitization by allowlisting safe metadata keys and denylisting user-identifier tokens
+   - Implemented deterministic skill routing labels (`knowledge_qa`, `summarization`) so routing choice is inspectable and testable
+   - Used exact query-string match (`strip()` normalized) for public cache keys to satisfy exact-match cache path requirement
+
+BLOCKERS RESOLVED:
+   - Initial SSE tests attempted `response.text` on a streaming response; fixed tests to read stream bytes via `response.read().decode("utf-8")`
+
+REMAINING ISSUES:
+   - Chat endpoint currently uses deterministic local provider stub; real upstream provider adapters can be plugged into `ProviderRouter` later without changing route contract
+
+NOTES FOR NEXT AGENT:
+   - To integrate external providers, implement provider classes with `name` and async `generate(payload)` and pass them into `ProviderRouter`
+   - If cache persistence is required across restarts, replace in-memory `_public_cache` in `ChatService` with durable storage
+   - Retrieval row currently does not include folder in `hybrid_rrf_search`; if strict folder filtering is required at SQL layer, extend retrieval query output and where-clause accordingly
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Retry up to three times on timeout/429/5xx before provider failover - VERIFIED (`backend/tests/chat/test_ai_router_retry_failover.py`)
+   ✓ Criterion 2: Outbound calls carry only sanitized snippets/context with no full content or user identifiers - VERIFIED (`backend/tests/chat/test_outbound_payload_sanitization.py`, sanitizer allowlist/denylist in `backend/src/app/ai/sanitizer.py`)
+   ✓ Criterion 3: Chat responses stream SSE chunks including citations - VERIFIED (`backend/tests/chat/test_chat_sse_with_citations.py`, stream implementation in `backend/src/app/routers/chat.py`)
+
+TESTING RESULTS:
+   ✓ Red phase: `uv run --group dev pytest tests/chat -q` -> 8 failures expected before implementation
+   ✓ Targeted chat suite: `uv run --group dev pytest tests/chat -q` -> 8/8 passing
+   ✓ Full backend regression: `uv run --group dev pytest tests -q` -> 42/42 passing
+
+================================================================================
+
+================================================================================
 TASK ID: task-006
 TASK NAME: Implement Permission Governance
 STATUS: complete
