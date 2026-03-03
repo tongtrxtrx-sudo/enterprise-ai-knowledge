@@ -1,0 +1,223 @@
+{
+  "tasks": [
+    {
+      "task": "Bootstrap Runtime Skeleton",
+      "description": "Create a runnable v2.1 runtime scaffold with seven Docker services and health contract checks.",
+      "steps": [
+        { "step": 1, "description": "Create Docker Compose with nginx, frontend, backend, postgres, redis, minio, and onlyoffice" },
+        { "step": 2, "description": "Add environment schema, reverse-proxy config, and backend health endpoint" },
+        { "step": 3, "description": "Write failing healthcheck tests, then implement to make them green" }
+      ],
+      "acceptance-criteria": "Compose stack must include all v2.1 services. GET /health must return 200 and contain service_name and version fields. Frontend and backend containers must start with validated environment variables.",
+      "test-plan": {
+        "unit": [
+          "Health contract function returns service_name and version fields for default in-memory config",
+          "Compose parser rejects missing required environment variables in unit configuration test"
+        ],
+        "integration": [],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Implement Authentication Core",
+      "description": "Build local account authentication with token versioning and PostgreSQL-backed logout invalidation.",
+      "steps": [
+        { "step": 1, "description": "Create auth schemas, routers, and persistence models for users and token blacklist" },
+        { "step": 2, "description": "Write login refresh logout tests for token rotation and blacklist behavior" },
+        { "step": 3, "description": "Implement JWT issuance, refresh cookie handling, and logout invalidation" },
+        { "step": 4, "description": "Integrate role and version checks in authentication middleware" }
+      ],
+      "acceptance-criteria": "Login must return access and refresh tokens with secure cookie flags. Refresh flow must fail for blacklisted JTI or stale token_version. Logout must persist refresh JTI in PostgreSQL. Role checks must reject unauthorized access by default.",
+      "test-plan": {
+        "unit": [
+          "Mock user store returns valid token when password hash matches and rejects invalid credentials",
+          "Refresh validator rejects JWT when token_version in DB is lower than token payload",
+          "Blacklisted refresh JTI must be treated as invalid in isolation tests"
+        ],
+        "integration": [
+          "Login endpoint writes refresh token to HTTP response with HttpOnly cookie while reading real bcrypt configuration",
+          "Logout endpoint writes JTI into PostgreSQL token_blacklist and subsequent refresh call is blocked"
+        ],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Build Secure Uploading",
+      "description": "Implement backend-upload flow for size, type, checksum, deduplication, and file versioning.",
+      "steps": [
+        { "step": 1, "description": "Create file validators, upload endpoint, and dedup/version persistence models" },
+        { "step": 2, "description": "Add MinIO object layout and checksum-based duplicate handling tests" },
+        { "step": 3, "description": "Trigger parse task asynchronously and persist initial parse_status state" },
+        { "step": 4, "description": "Return deterministic responses for duplicate, reject, and success paths" }
+      ],
+      "acceptance-criteria": "Upload must reject >10MB files, executable signatures, and unsafe filenames. Identical hash in same folder returns 409, same name with new hash creates a new version, and successful uploads trigger parse_status=processing asynchronously.",
+      "test-plan": {
+        "unit": [
+          "Validator rejects oversized mock upload and records 413-like error for exact-size boundary checks",
+          "Sanitizer removes path separators and control characters from mock filenames and truncates safely",
+          "Dedup checker returns 409 when mock folder contains identical hash under same file path"
+        ],
+        "integration": [
+          "Upload endpoint writes original and markdown objects to MinIO and creates files and file_versions rows in PostgreSQL with current_version updates",
+          "Upload with mismatched hash under same filename creates version N+1 and emits background task invocation"
+        ],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Create Parsing Pipeline",
+      "description": "Add MarkItDown parsing, chunking, vectorization, and RRF retrieval storage flow.",
+      "steps": [
+        { "step": 1, "description": "Implement chunker and indexing service with strict input/output contracts" },
+        { "step": 2, "description": "Persist doc_chunks and index_tree rows through async background tasks" },
+        { "step": 3, "description": "Implement BM25 plus vector RRF ranking SQL with permission predicates" },
+        { "step": 4, "description": "Handle vector failures by setting parse_status and preserving deterministic state" }
+      ],
+      "acceptance-criteria": "Uploaded content must generate Markdown, chunk records, tsvector, and vectors when provider calls succeed. Retrieval must exclude unauthorized content. Vector failure must keep vector_ready=false and allow repeatable retry without duplicate rows.",
+      "test-plan": {
+        "unit": [
+          "Chunker splits synthetic text into fixed token windows and preserves deterministic boundaries",
+          "RRF merge test with mock bm25 and vector candidates returns ordered top-N scores", "parse_status transition sequence must follow pending -> processing -> normal/failed deterministically"
+        ],
+        "integration": [
+          "Background parse task stores parsed markdown and doc_chunks rows for real uploaded file fixtures",
+          "Hybrid retrieval query with real SQL returns only rows where user_id matches or is_public or read_allow contains requester id"
+        ],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Add Online Editing",
+      "description": "Implement ONLYOFFICE single-user edit sessions, callback persistence, and immediate reindexing.",
+      "steps": [
+        { "step": 1, "description": "Add edit session table or cache map with version and token binding" },
+        { "step": 2, "description": "Expose edit start endpoint that validates permission and returns editor config" },
+        { "step": 3, "description": "Handle callback status 2/6 with version checks and new version writes" },
+        { "step": 4, "description": "Trigger immediate parse reindex after successful callback save" }
+      ],
+      "acceptance-criteria": "Only owner, admin, dept manager, and shared-edit grantees can open edit sessions. Callback must reject stale version tokens and duplicate saves without creating duplicate versions. Save success must append to file_versions, update files.current_version, and queue reindex immediately.",
+      "test-plan": {
+        "unit": [
+          "Mock callback payload with missing token returns error 1 and no version writes",
+          "Mock second callback for the same session returns idempotent response and does not duplicate file_versions",
+          "Permission checker with mocked user roles allows editable for owner/admin/manager/shared-can-edit and denies read-only users"
+        ],
+        "integration": [
+          "Start-edit endpoint stores session against current file version and onlyoffice payload downloads the current content from MinIO",
+          "Real callback flow writes new object to MinIO, updates file_versions and files.current_version, and triggers indexing task"
+        ],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Implement Permission Governance",
+      "description": "Build folder permissions, share defaults, admin controls, and retrieval visibility synchronization.",
+      "steps": [
+        { "step": 1, "description": "Create folder permission CRUD and default shared-can-edit behavior" },
+        { "step": 2, "description": "Sync permission grants into doc_chunks.read_allow during updates" },
+        { "step": 3, "description": "Add admin-only endpoints with strict role guards and audit logging" },
+        { "step": 4, "description": "Add policy tests for isolation and cross-user access boundaries" }
+      ],
+      "acceptance-criteria": "Default sharing must be editable unless explicitly set can_edit=false. Retrieval and folder listing must only expose files owned, authorized by folder rule, or public. Admin-only APIs must reject non-admin users, and every permission-related mutation must create audit records.",
+      "test-plan": {
+        "unit": [
+          "Permission service returns deny for user without grant when using mock rule store",
+          "Default shared permission must set allow_edit=true in permission model unit tests",
+          "Audit writer receives structured payload for grant and revoke actions"
+        ],
+        "integration": [
+          "Grant/revoke API updates folder_permissions and doc_chunks.read_allow in PostgreSQL", "Admin role guard blocks standard user requests against admin routes while normal user endpoints remain accessible"
+        ],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Implement AI Routing",
+      "description": "Build provider failover, sanitized outbound payloads, and streaming chat with citations.",
+      "steps": [
+        { "step": 1, "description": "Create provider router with timeout and retry strategy for 3 attempts" },
+        { "step": 2, "description": "Add outbound payload sanitizer for chunk content and metadata redaction" },
+        { "step": 3, "description": "Implement SSE chat endpoint with skill routing and citation fields" },
+        { "step": 4, "description": "Add exact-match cache path for public query answers" }
+      ],
+      "acceptance-criteria": "Routing must retry up to three times on timeout, 429, and 5xx before provider failover. Outbound calls must carry only sanitized text snippets and context, never full file content or user identifiers. Chat responses must stream SSE chunks including citations.",
+      "test-plan": {
+        "unit": [
+          "Provider router chooses backup after three mocked primary failures and increments retry counters correctly",
+          "Sanitizer removes filename, user identity, and full-document blocks from outbound payload mocks",
+          "Exact-match cache returns immediate answer for repeated trimmed query within TTL"
+        ],
+        "integration": [
+          "Streaming endpoint combines retrieval results from real index query and produces ordered citation IDs in SSE frames",
+          "Failover test against real HTTP client wrapper confirms fallback provider is called after full retry budget is reached"
+        ],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Build Frontend Workflow",
+      "description": "Deliver chat, file manager, and admin pages with permission-aware API contracts.",
+      "steps": [
+        { "step": 1, "description": "Create route shell with auth checks and permission-aware side navigation" },
+        { "step": 2, "description": "Implement file upload, tree browsing, and version list components with mocked API types" },
+        { "step": 3, "description": "Embed ONLYOFFICE iframe for single-user edit session and save callback handling" },
+        { "step": 4, "description": "Add admin users, departments, permissions, and audit pages" }
+      ],
+      "acceptance-criteria": "Chat page must stream SSE answers and display citations. File manager must handle upload and version actions with permission-based controls. Admin pages must enforce admin-only access and show audit, user, and permission states.",
+      "test-plan": {
+        "unit": [
+          "Chat component test with mocked stream parser displays chunks and citation badges correctly",
+          "File tree component hides actions when mocked API denies edit rights",
+          "Admin guard test blocks management routes for non-admin identity"
+        ],
+        "integration": [
+          "Render file manager with real backend stubs to verify tree navigation maps to API responses and upload form posts multipart payloads",
+          "Open edit flow against mock editor endpoint and callback handler sends correct file_id and token"
+        ],
+        "e2e-manual": []
+      },
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Finalize Production Delivery",
+      "description": "Add hardening, runbooks, and load checks for reproducible v2.1 deployment.",
+      "steps": [
+        { "step": 1, "description": "Build backup/restore scripts for PostgreSQL, Redis, and MinIO" },
+        { "step": 2, "description": "Add compose health probes and startup order constraints for all services" },
+        { "step": 3, "description": "Publish deployment runbooks and incident response run flow" },
+        { "step": 4, "description": "Define and execute smoke k6 checks for target latency and throughput" }
+      ],
+      "acceptance-criteria": "Deployment stack must pass startup checks for all seven services on clean environment. Backup and restore scripts must restore schema, object data, and cache snapshot. Runbook steps must complete and include rollback actions for failed indexing and editor callback incidents.",
+      "test-plan": {
+        "unit": [
+          "Compose configuration unit checker validates required services and explicit health checks",
+          "Backup script dry-run test verifies command generation without destructive execution"
+        ],
+        "integration": [
+          "Start full docker compose, run smoke health checks, and confirm service dependencies settle within timeout",
+          "Load smoke test against API endpoints meets baseline response budgets for chat and file list"
+        ],
+        "e2e-manual": [
+          "Validate operational runbooks by simulating one failed callback and one search outage, then follow documented recovery steps"
+        ]
+      },
+      "skills": ["testing-safe-protocol", "verification-before-completion"],
+      "complete": false
+    }
+  ]
+}

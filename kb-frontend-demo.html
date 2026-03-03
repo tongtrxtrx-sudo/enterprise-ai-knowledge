@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业级AI知识库 - 前端原型演示</title>
+    <!-- 使用 Tailwind CSS 进行快速样式构建 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 FontAwesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677ff', // Ant Design V5 主色调
+                        bgBase: '#f5f7fa',
+                        borderBase: '#f0f0f0',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #bfbfbf; }
+        
+        .file-tree-item:hover { background-color: #f5f5f5; }
+        .chat-bubble { max-width: 80%; }
+        .markdown-body p { margin-bottom: 0.5em; }
+        .markdown-body ol { padding-left: 1.5em; list-style-type: decimal; margin-bottom: 0.5em; }
+        
+        /* 拖拽上传遮罩层 */
+        #drag-overlay {
+            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px dashed #1677ff;
+        }
+        #drag-overlay.active { display: flex; }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col bg-bgBase text-gray-800 text-sm font-sans">
+
+    <!-- 顶部导航栏 -->
+    <header class="h-14 bg-white border-b border-borderBase flex items-center justify-between px-4 z-10 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-white font-bold text-lg">
+                <i class="fa-solid fa-cube"></i>
+            </div>
+            <h1 class="text-base font-bold text-gray-800">企业级AI知识库系统</h1>
+            <span class="bg-blue-50 text-primary px-2 py-0.5 rounded text-xs border border-blue-100">内网版 v2.3</span>
+        </div>
+        <div class="flex items-center space-x-4 text-gray-500">
+            <button class="hover:text-primary transition"><i class="fa-solid fa-bell"></i></button>
+            <button class="hover:text-primary transition"><i class="fa-solid fa-gear"></i></button>
+            <div class="w-px h-4 bg-gray-300"></div>
+            <div class="flex items-center space-x-2 cursor-pointer hover:text-gray-800">
+                <div class="w-7 h-7 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xs">张三</div>
+                <span class="text-xs">销售部</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体布局 -->
+    <main class="flex-1 flex overflow-hidden relative">
+        
+        <!-- 全局拖拽上传遮罩 -->
+        <div id="drag-overlay" class="absolute inset-0 z-50 items-center justify-center flex-col">
+            <i class="fa-solid fa-cloud-arrow-up text-6xl text-primary mb-4"></i>
+            <h2 class="text-2xl font-bold text-gray-800">松开鼠标，立即上传文件到知识库</h2>
+            <p class="text-gray-500 mt-2">支持 PDF / Word / Excel / PPT / 图片格式</p>
+        </div>
+
+        <!-- 左侧侧边栏 (可折叠文件树) -->
+        <aside class="w-64 bg-white border-r border-borderBase flex flex-col shrink-0">
+            <!-- 操作区 -->
+            <div class="p-4 border-b border-borderBase">
+                <button class="w-full bg-primary hover:bg-blue-600 text-white rounded-md py-2 px-4 flex items-center justify-center space-x-2 shadow-sm transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>上传文件或新建</span>
+                </button>
+            </div>
+
+            <!-- 文件树区域 -->
+            <div class="flex-1 overflow-y-auto p-2">
+                <!-- 个人空间 -->
+                <div class="mb-4">
+                    <div class="text-xs text-gray-400 font-bold px-2 mb-2 flex items-center justify-between">
+                        <span>我的文件 (个人空间)</span>
+                        <i class="fa-solid fa-ellipsis hover:text-gray-700 cursor-pointer"></i>
+                    </div>
+                    <ul class="space-y-0.5">
+                        <li class="file-tree-item px-2 py-1.5 rounded cursor-pointer flex items-center text-gray-700">
+                            <i class="fa-solid fa-caret-down w-4 text-gray-400"></i>
+                            <i class="fa-solid fa-folder w-5 text-yellow-400"></i>
+                            <span class="truncate">2024年Q3合同</span>
+                        </li>
+                        <!-- 子节点 -->
+                        <ul class="pl-6 space-y-0.5">
+                            <li class="file-tree-item px-2 py-1.5 rounded cursor-pointer flex items-center text-gray-600 bg-blue-50 text-primary font-medium">
+                                <i class="fa-solid fa-file-pdf w-5 text-red-500"></i>
+                                <span class="truncate">华东区代理协议.pdf</span>
+                            </li>
+                            <li class="file-tree-item px-2 py-1.5 rounded cursor-pointer flex items-center text-gray-600">
+                                <i class="fa-solid fa-file-word w-5 text-blue-500"></i>
+                                <span class="truncate">采购合同.docx</span>
+                            </li>
+                        </ul>
+                        <li class="file-tree-item px-2 py-1.5 rounded cursor-pointer flex items-center text-gray-700 mt-1">
+                            <i class="fa-solid fa-caret-right w-4 text-gray-400"></i>
+                            <i class="fa-solid fa-folder w-5 text-yellow-400"></i>
+                            <span class="truncate">报销单据</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 共享空间 -->
+                <div class="mb-4">
+                    <div class="text-xs text-gray-400 font-bold px-2 mb-2">共享空间 (仅查看)</div>
+                    <ul class="space-y-0.5">
+                        <li class="file-tree-item px-2 py-1.5 rounded cursor-pointer flex items-center text-gray-700">
+                            <i class="fa-solid fa-caret-right w-4 text-gray-400"></i>
+                            <i class="fa-solid fa-folder-shared w-5 text-blue-400"></i>
+                            <span class="truncate">销售部产品资料</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 公共知识库 -->
+                <div>
+                    <div class="text-xs text-gray-400 font-bold px-2 mb-2">公共知识库</div>
+                    <ul class="space-y-0.5">
+                        <li class="file-tree-item px-2 py-1.5 rounded cursor-pointer flex items-center text-gray-700">
+                            <i class="fa-solid fa-caret-right w-4 text-gray-400"></i>
+                            <i class="fa-solid fa-book w-5 text-green-500"></i>
+                            <span class="truncate">公司规章制度</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 容量提示 -->
+            <div class="p-4 border-t border-borderBase text-xs text-gray-500">
+                <div class="flex justify-between mb-1">
+                    <span>存储容量</span>
+                    <span>1.2 GB / 50 GB</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                    <div class="bg-primary h-1.5 rounded-full" style="width: 2.4%"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 右侧主区域：聊天驱动交互 -->
+        <section class="flex-1 flex flex-col relative bg-white">
+            
+            <!-- 聊天视图头部 -->
+            <div class="h-12 border-b border-borderBase px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
+                <div class="flex items-center space-x-2 text-gray-600">
+                    <i class="fa-solid fa-message text-primary"></i>
+                    <span class="font-medium">AI 知识助手</span>
+                </div>
+                <div class="flex items-center space-x-3 text-gray-400">
+                    <button class="hover:text-primary transition flex items-center space-x-1" title="检索范围：全部有权文件">
+                        <i class="fa-solid fa-filter"></i>
+                        <span class="text-xs">全局检索</span>
+                    </button>
+                    <button class="hover:text-primary transition px-2"><i class="fa-solid fa-clock-rotate-left"></i> 历史对话</button>
+                </div>
+            </div>
+
+            <!-- 聊天记录区 -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-bgBase" id="chat-container">
+                
+                <!-- AI 欢迎语 -->
+                <div class="flex space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0">
+                        <i class="fa-solid fa-robot text-xs"></i>
+                    </div>
+                    <div class="chat-bubble">
+                        <div class="bg-white border border-borderBase p-3 rounded-lg rounded-tl-none shadow-sm text-gray-700">
+                            <p>您好，张三！我是您的企业知识库助手。您可以：</p>
+                            <div class="mt-2 space-y-2">
+                                <button class="block w-full text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 text-primary rounded border border-blue-100 transition text-xs">
+                                    <i class="fa-solid fa-magnifying-glass mr-1"></i> 查询《员工手册》中的报销标准
+                                </button>
+                                <button class="block w-full text-left px-3 py-2 bg-blue-50 hover:bg-blue-100 text-primary rounded border border-blue-100 transition text-xs">
+                                    <i class="fa-solid fa-file-invoice mr-1"></i> 帮我总结一下最新的代理协议
+                                </button>
+                                <button class="block w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded border border-gray-200 transition text-xs">
+                                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i> 拖拽文件到窗口直接上传并索引
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户操作：上传文件 -->
+                <div class="flex space-x-3 flex-row-reverse space-x-reverse">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">张三</div>
+                    <div class="chat-bubble flex flex-col items-end">
+                        <div class="bg-primary p-3 rounded-lg rounded-tr-none shadow-sm text-white">
+                            上传了新文件
+                        </div>
+                        <!-- 文件卡片 -->
+                        <div class="mt-2 bg-white border border-borderBase rounded p-3 flex items-center space-x-3 shadow-sm w-64">
+                            <i class="fa-solid fa-file-pdf text-red-500 text-2xl"></i>
+                            <div class="flex-1 overflow-hidden">
+                                <div class="text-sm font-medium text-gray-700 truncate">华东区代理协议.pdf</div>
+                                <div class="text-xs text-gray-400">2.4 MB · 上传成功</div>
+                            </div>
+                            <i class="fa-solid fa-circle-check text-green-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI 响应：文件上传后的处理 -->
+                <div class="flex space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0">
+                        <i class="fa-solid fa-robot text-xs"></i>
+                    </div>
+                    <div class="chat-bubble">
+                        <div class="bg-white border border-borderBase p-3 rounded-lg rounded-tl-none shadow-sm text-gray-700 markdown-body">
+                            <p>收到文件！已在后台通过 <strong>MarkItDown</strong> 自动解析完毕并建立 BM25 索引。🤖</p>
+                            <p class="text-xs text-gray-500 mb-2 border-l-2 border-blue-400 pl-2">AI 智能提取摘要：该文件为 2024 年华东大区产品代理合作协议，包含合作期限、价格体系、保密条款与违约责任等内容。</p>
+                            <p>请问需要将其整理到哪个文件夹？</p>
+                            <div class="mt-3 flex space-x-2">
+                                <button class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-primary border border-blue-200 rounded text-xs transition">
+                                    <i class="fa-solid fa-folder-open mr-1"></i> 移动到 "2024年Q3合同"
+                                </button>
+                                <button class="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 rounded text-xs transition">
+                                    <i class="fa-solid fa-folder-plus mr-1"></i> 新建文件夹
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户指令 -->
+                <div class="flex space-x-3 flex-row-reverse space-x-reverse">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">张三</div>
+                    <div class="chat-bubble">
+                        <div class="bg-primary p-3 rounded-lg rounded-tr-none shadow-sm text-white">
+                            放到 2024年Q3合同 里面，顺便帮我总结一下里面的违约赔偿标准。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI 问答：结合文件操作与知识解答 -->
+                <div class="flex space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0">
+                        <i class="fa-solid fa-robot text-xs"></i>
+                    </div>
+                    <div class="chat-bubble">
+                        <div class="bg-white border border-borderBase p-4 rounded-lg rounded-tl-none shadow-sm text-gray-700 markdown-body">
+                            <!-- 操作反馈执行完毕 -->
+                            <div class="flex items-center text-green-600 text-xs mb-3 font-medium bg-green-50 w-fit px-2 py-1 rounded">
+                                <i class="fa-solid fa-check mr-1"></i> 指令执行成功：文件已移动至目标文件夹。
+                            </div>
+                            
+                            <p>根据您的要求，我查阅了《华东区代理协议.pdf》，关于<strong>违约赔偿标准</strong>的总结如下：</p>
+                            
+                            <ol class="mt-2 text-sm">
+                                <li><strong>逾期付款违约金</strong>：若代理商未按期支付货款，每日需按应付未付款项的 <strong>0.3%</strong>（千分之三）向甲方支付违约金。</li>
+                                <li><strong>跨区串货处罚</strong>：若发现乙方在授权区域外进行销售（串货），首次发现需支付 <strong>50,000元</strong> 罚款，第二次发现甲方有权单方面终止合同并扣除全部保证金。</li>
+                                <li><strong>保密责任</strong>：任何一方泄露商业机密，需赔偿守约方直接经济损失，底薪违约金为 <strong>200,000元</strong>。</li>
+                            </ol>
+                            
+                            <!-- 来源引用卡片 -->
+                            <div class="mt-4 pt-3 border-t border-borderBase">
+                                <div class="text-xs text-gray-400 mb-2">引用来源：</div>
+                                <div class="inline-flex items-center bg-gray-50 border border-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-gray-100 transition">
+                                    <i class="fa-solid fa-file-pdf text-red-500 mr-1.5 text-xs"></i>
+                                    <span class="text-xs text-gray-600">华东区代理协议.pdf (第 8 页，第 6 章节)</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 满意度反馈 -->
+                            <div class="mt-3 flex items-center justify-end space-x-2 text-gray-400">
+                                <button class="hover:text-primary transition" title="有用"><i class="fa-regular fa-thumbs-up"></i></button>
+                                <button class="hover:text-red-500 transition" title="无用"><i class="fa-regular fa-thumbs-down"></i></button>
+                                <button class="hover:text-gray-700 transition" title="复制内容"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 底部输入区 -->
+            <div class="p-4 bg-white border-t border-borderBase z-10 shadow-[0_-2px_10px_rgba(0,0,0,0.02)]">
+                <div class="border border-borderBase rounded-lg bg-white overflow-hidden focus-within:border-primary focus-within:shadow-[0_0_0_2px_rgba(22,119,255,0.2)] transition-all">
+                    <!-- 输入框上方工具栏 -->
+                    <div class="flex items-center px-3 py-2 bg-gray-50 border-b border-borderBase space-x-3 text-gray-500">
+                        <button class="hover:text-primary transition" title="上传附件"><i class="fa-solid fa-paperclip"></i></button>
+                        <button class="hover:text-primary transition" title="选择关联文件夹"><i class="fa-regular fa-folder"></i> <span class="text-xs ml-1">关联知识库</span></button>
+                        <div class="flex-1 text-right">
+                            <span class="text-xs text-gray-400"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> 通义千问/DeepSeek 智能路由中</span>
+                        </div>
+                    </div>
+                    <!-- 文本域 -->
+                    <textarea class="w-full h-20 p-3 resize-none outline-none text-sm text-gray-700 bg-white" placeholder="输入你想查询的内容，或者输入文件操作指令（如：帮我新建一个项目总结文件夹）..."></textarea>
+                    <!-- 发送按钮区 -->
+                    <div class="px-3 py-2 flex justify-end items-center bg-white">
+                        <button class="bg-primary hover:bg-blue-600 text-white px-4 py-1.5 rounded flex items-center space-x-1 shadow-sm transition">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <span class="text-sm">发送</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-center mt-2 text-gray-400" style="font-size: 11px;">
+                    AI 生成内容仅供参考。系统支持直接将文件拖拽至窗口内上传。
+                </div>
+            </div>
+            
+        </section>
+    </main>
+
+    <script>
+        // 简单的拖拽上传交互效果
+        const dragOverlay = document.getElementById('drag-overlay');
+        let dragCounter = 0;
+
+        document.body.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            dragCounter++;
+            dragOverlay.classList.add('active');
+        });
+
+        document.body.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter === 0) {
+                dragOverlay.classList.remove('active');
+            }
+        });
+
+        document.body.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.body.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            dragOverlay.classList.remove('active');
+            // 此处可执行上传逻辑...
+            alert("原型演示：文件已接收！");
+        });
+        
+        // 保持聊天自动滚动到底部
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    </script>
+</body>
+</html>

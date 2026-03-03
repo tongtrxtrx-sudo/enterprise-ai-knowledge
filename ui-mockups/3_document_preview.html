@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业AI知识库 - 文档沉浸式阅读</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { ant: '#1677ff', bg: '#f5f5f5' } } } }
+    </script>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col overflow-hidden font-sans">
+    
+    <!-- 顶部导航 -->
+    <div class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 flex-shrink-0 shadow-sm z-10">
+        <div class="flex items-center space-x-4">
+            <button class="text-gray-500 hover:text-ant transition-colors"><i class="fa-solid fa-arrow-left"></i> 返回</button>
+            <div class="h-4 w-px bg-gray-300"></div>
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-file-pdf text-red-500 text-lg"></i>
+                <span class="font-medium text-gray-800">企业级AI知识库系统 - 整体方案设计 v3.2.pdf</span>
+            </div>
+            <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded border border-green-200">解析完成</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center bg-gray-100 rounded px-2 py-1 text-sm text-gray-600">
+                <button class="px-2 hover:text-ant"><i class="fa-solid fa-minus"></i></button>
+                <span class="px-2 font-medium">100%</span>
+                <button class="px-2 hover:text-ant"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <button class="text-gray-500 hover:text-ant text-sm transition-colors"><i class="fa-solid fa-share-nodes mr-1"></i> 分享</button>
+            <button class="text-gray-500 hover:text-ant text-sm transition-colors"><i class="fa-solid fa-download mr-1"></i> 下载原件</button>
+            <button class="text-gray-500 hover:text-ant text-sm transition-colors"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        </div>
+    </div>
+
+    <!-- 主体：左右分栏 -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- 左侧：文档大纲 -->
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm z-0">
+            <div class="p-3 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase flex justify-between items-center">
+                <span>文档大纲 (AI 提取)</span>
+                <i class="fa-solid fa-list-ul"></i>
+            </div>
+            <div class="p-3 overflow-y-auto flex-1">
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="cursor-pointer hover:text-ant font-medium">一、 项目概述</li>
+                    <li class="cursor-pointer hover:text-ant pl-4 text-gray-500">1.1 系统定位</li>
+                    <li class="cursor-pointer hover:text-ant pl-4 text-gray-500">1.2 核心设计原则</li>
+                    <li class="cursor-pointer text-ant font-medium bg-blue-50 p-1 rounded">二、 系统架构</li>
+                    <li class="cursor-pointer hover:text-ant pl-4 text-gray-500">2.1 整体架构图</li>
+                    <li class="cursor-pointer hover:text-ant pl-4 text-gray-500">2.2 核心技术栈</li>
+                    <li class="cursor-pointer hover:text-ant font-medium">三、 文件上传链路</li>
+                    <li class="cursor-pointer hover:text-ant pl-4 text-gray-500">3.1 分片直传与前端Hash</li>
+                    <li class="cursor-pointer hover:text-ant font-medium">四、 混合检索与查询</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 中间：PDF/Markdown 渲染区 -->
+        <div class="flex-1 bg-gray-200 overflow-y-auto relative p-6 flex justify-center">
+            <!-- 模拟的 A4 纸张页面 -->
+            <div class="w-[800px] bg-white shadow-lg p-10 flex flex-col space-y-4">
+                <h1 class="text-2xl font-bold border-b pb-2">二、 系统架构</h1>
+                
+                <h2 class="text-xl font-medium mt-4">2.1 整体架构图</h2>
+                <div class="bg-gray-800 text-green-400 p-4 rounded text-xs font-mono whitespace-pre overflow-x-auto">
+┌──────────────────────────────────────────────────────────┐
+│                    企业内网 (Intranet)                   │
+│                                                          │
+│  浏览器/钉钉 ──▶ Nginx（IP白名单 + HTTPS + 限流）        │
+│                      │                                   │
+│                FastAPI 后端服务                          │
+│           认证/文件/AI问答/权限/审计/组织同步            │
+└────────────────────────┬─────────────────────────────────┘
+                </div>
+                
+                <h2 class="text-xl font-medium mt-4">2.2 核心组件交互</h2>
+                <!-- 高亮语义块 (Semantic Chunk) -->
+                <div class="relative group cursor-text">
+                    <!-- 悬浮操作菜单 -->
+                    <div class="absolute -top-8 right-0 bg-gray-800 text-white text-xs rounded px-2 py-1 hidden group-hover:flex space-x-3 shadow-lg z-10">
+                        <span class="hover:text-ant cursor-pointer"><i class="fa-solid fa-quote-left mr-1"></i>引用提问</span>
+                        <span class="hover:text-ant cursor-pointer"><i class="fa-solid fa-language mr-1"></i>翻译</span>
+                        <span class="hover:text-ant cursor-pointer"><i class="fa-solid fa-compress mr-1"></i>总结该段</span>
+                    </div>
+                    <!-- 被选中的文本块 -->
+                    <p class="text-gray-700 leading-relaxed bg-yellow-100 p-1 -mx-1 rounded transition-colors selection:bg-blue-200">
+                        <strong>缓存隔离策略：</strong> 大文件分片上传会话的进度状态目前存入 <code>redis-security</code> (策略为 <code>noeviction</code>) 中。当 <code>redis-cache</code> 缓存满时，正在上传的大文件状态不会被 LRU 策略静默驱逐，从而保障断点续传的可靠性，避免产生 MinIO 孤儿分片。
+                    </p>
+                </div>
+                <p class="text-gray-700 leading-relaxed">
+                    在 <code>/complete</code> 接口调用 MinIO 合并前，引入 PG <code>pending_complete</code> 日志进行最终一致性补偿（Outbox 模式），避免应用崩溃产生孤儿文件。
+                </p>
+                
+                <!-- 占位填空 -->
+                <div class="h-64"></div>
+            </div>
+            
+            <!-- 页码浮窗 -->
+            <div class="absolute bottom-6 bg-gray-800/70 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                第 3 / 15 页
+            </div>
+        </div>
+
+        <!-- 右侧：当前文档专属 AI 助手 -->
+        <div class="w-80 bg-white border-l border-gray-200 flex flex-col shadow-sm z-0">
+            <div class="h-12 border-b border-gray-100 flex items-center px-4 bg-gray-50/50 justify-between">
+                <span class="text-sm font-bold text-gray-700"><i class="fa-solid fa-sparkles text-ant mr-1"></i> 文档助手</span>
+                <i class="fa-solid fa-expand text-gray-400 cursor-pointer hover:text-ant"></i>
+            </div>
+            
+            <!-- AI Chat for specific document -->
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col space-y-4">
+                <div class="bg-blue-50 border border-blue-100 p-3 rounded-lg text-sm text-gray-700">
+                    <p class="font-medium text-ant mb-1"><i class="fa-solid fa-file-invoice"></i> AI 文档摘要</p>
+                    本文档是企业级 AI 知识库系统的整体架构设计（v3.2）。重点阐述了文件分片上传、混合检索（ES+Reranker）、错峰发车策略以及文档预览的技术原理。
+                </div>
+                
+                <div class="flex flex-col space-y-1 items-end mt-4">
+                    <div class="bg-ant text-white p-2.5 rounded-lg rounded-tr-none text-sm max-w-[90%]">
+                        解释一下上文中提到的"错峰发车"是什么意思？
+                    </div>
+                </div>
+                
+                <div class="flex flex-col space-y-1 items-start">
+                    <div class="bg-gray-100 text-gray-700 p-2.5 rounded-lg rounded-tl-none text-sm max-w-[90%]">
+                        "错峰发车"是指：主路（混合检索）优先执行，辅路（AI大模型）通过 <code>sleep(0.3)</code> 延迟启动。如果在 300ms 内主路得出了高置信度结果，就会取消辅路的执行，从而大幅节省 Token 和带宽。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input for Document Chat -->
+            <div class="p-3 border-t border-gray-200 bg-white">
+                <div class="relative flex items-end border border-gray-300 rounded overflow-hidden focus-within:border-ant transition-all">
+                    <textarea rows="1" class="flex-1 py-2 px-3 text-sm outline-none resize-none max-h-24 text-gray-700" placeholder="基于本文档提问..."></textarea>
+                    <button class="p-2 text-ant hover:bg-gray-100 transition-colors"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

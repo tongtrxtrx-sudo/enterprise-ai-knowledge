@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业AI知识库 - 管理后台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js CDN for mockup charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { ant: '#1677ff', bg: '#f5f5f5', darkbg: '#001529' } } } }
+    </script>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden font-sans">
+    
+    <!-- 深色管理侧边栏 -->
+    <div class="w-64 bg-darkbg text-white flex flex-col z-10 shadow-xl border-r border-gray-800">
+        <div class="h-16 flex items-center px-4 font-bold text-lg tracking-wide border-b border-gray-800/50 shadow-sm bg-gray-900/50">
+            <i class="fa-solid fa-shield-halved text-blue-400 mr-2"></i> 系统管理后台
+        </div>
+        <div class="flex-1 py-4 overflow-y-auto">
+            <ul class="space-y-1 text-sm font-medium text-gray-300">
+                <li class="px-6 py-3 bg-ant text-white flex items-center space-x-3 cursor-pointer">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i> <span>运行看板</span>
+                </li>
+                <li class="px-6 py-3 hover:text-white hover:bg-gray-800 flex items-center space-x-3 cursor-pointer transition-colors">
+                    <i class="fa-solid fa-users w-5 text-center"></i> <span>组织与用户</span>
+                </li>
+                <li class="px-6 py-3 hover:text-white hover:bg-gray-800 flex items-center space-x-3 cursor-pointer transition-colors">
+                    <i class="fa-solid fa-database w-5 text-center"></i> <span>索引与存储</span>
+                </li>
+                <li class="px-6 py-3 hover:text-white hover:bg-gray-800 flex items-center space-x-3 cursor-pointer transition-colors">
+                    <i class="fa-solid fa-robot w-5 text-center"></i> <span>AI 模型配置</span>
+                </li>
+                <li class="px-6 py-3 hover:text-white hover:bg-gray-800 flex items-center space-x-3 cursor-pointer transition-colors">
+                    <i class="fa-solid fa-clipboard-list w-5 text-center"></i> <span>安全审计日志</span>
+                </li>
+            </ul>
+        </div>
+        <div class="p-4 border-t border-gray-800 bg-gray-900/50 flex items-center space-x-3 cursor-pointer hover:bg-gray-800 transition-colors">
+            <i class="fa-solid fa-arrow-right-from-bracket text-gray-400"></i>
+            <span class="text-sm text-gray-400">返回前台知识库</span>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+        <!-- 顶部通栏 -->
+        <div class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shadow-sm">
+            <h2 class="text-xl font-bold text-gray-800">运行看板 Dashboard</h2>
+            <div class="flex items-center space-x-4">
+                <span class="bg-green-100 text-green-700 px-3 py-1 text-xs font-medium rounded-full flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span> 系统运行正常
+                </span>
+                <span class="text-gray-400">|</span>
+                <span class="text-sm text-gray-500"><i class="fa-regular fa-clock"></i> 最后刷新: 刚刚</span>
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-8">
+            <!-- 核心数据指标 (4卡片) -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                    <div class="text-gray-500 text-sm font-medium mb-1 flex justify-between">
+                        总存储文件 <i class="fa-solid fa-file-invoice text-blue-400 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-800 mb-2">12,543</div>
+                    <div class="text-xs text-green-500 flex items-center"><i class="fa-solid fa-arrow-trend-up mr-1"></i> 今日新增 +124</div>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                    <div class="text-gray-500 text-sm font-medium mb-1 flex justify-between">
+                        MinIO 占用空间 <i class="fa-solid fa-hard-drive text-purple-400 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-800 mb-2">845.2 <span class="text-xl">GB</span></div>
+                    <div class="text-xs text-gray-400">存储容量警戒线: 2TB</div>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                    <div class="text-gray-500 text-sm font-medium mb-1 flex justify-between">
+                        本月 AI Token 消耗 <i class="fa-solid fa-coins text-yellow-500 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-800 mb-2">14.2 <span class="text-xl">M</span></div>
+                    <div class="text-xs text-green-500"><i class="fa-solid fa-arrow-trend-down mr-1"></i> 较上月下降 32% (得益于错峰发车)</div>
+                </div>
+                <!-- Card 4 -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+                    <div class="text-gray-500 text-sm font-medium mb-1 flex justify-between">
+                        ES 索引分块 (Chunks) <i class="fa-solid fa-network-wired text-green-500 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-800 mb-2">342,108</div>
+                    <div class="text-xs text-gray-400">包含 HNSW 向量索引</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <!-- 左侧: 基础设施监控 -->
+                <div class="col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                    <h3 class="font-bold text-gray-700 mb-4 border-b border-gray-100 pb-2">基础设施连通性</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Postgresql_elephant.svg" class="w-5" alt="PG">
+                                <span class="text-sm font-medium text-gray-700">PostgreSQL 16</span>
+                            </div>
+                            <span class="text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded">8ms</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-brands fa-envira text-yellow-500 text-lg w-5 text-center"></i>
+                                <span class="text-sm font-medium text-gray-700">Elasticsearch 8.11</span>
+                            </div>
+                            <span class="text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded">12ms</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-cube text-red-500 text-lg w-5 text-center"></i>
+                                <span class="text-sm font-medium text-gray-700">Redis (Cache/Security)</span>
+                            </div>
+                            <span class="text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded">2ms</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-server text-blue-500 text-lg w-5 text-center"></i>
+                                <span class="text-sm font-medium text-gray-700">MinIO Object Store</span>
+                            </div>
+                            <span class="text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded">18ms</span>
+                        </li>
+                        <li class="flex items-center justify-between pt-2 border-t border-gray-100">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-cloud text-gray-500 text-lg w-5 text-center"></i>
+                                <span class="text-sm font-medium text-gray-700">通义千问 API (外部)</span>
+                            </div>
+                            <span class="text-xs font-mono bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded border border-yellow-200">210ms</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 右侧: Token 消耗趋势图 -->
+                <div class="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                    <h3 class="font-bold text-gray-700 mb-4 border-b border-gray-100 pb-2">近 7 天 API Token 消耗趋势</h3>
+                    <div class="h-48 w-full">
+                        <canvas id="tokenChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部: 异步任务队列队列 (Celery) -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <h3 class="font-bold text-gray-700 mb-4 border-b border-gray-100 pb-2">Celery 异步任务队列 (队列积压监控)</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <div class="text-xs text-gray-500 font-bold mb-1 uppercase">worker-high</div>
+                        <div class="text-sm text-gray-700">Markdown切块 / 向量化重试</div>
+                        <div class="mt-2 flex justify-between items-end">
+                            <span class="text-2xl font-bold text-green-600">0</span>
+                            <span class="text-xs text-gray-400">积压任务数</span>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <div class="text-xs text-gray-500 font-bold mb-1 uppercase">worker-default</div>
+                        <div class="text-sm text-gray-700">MarkItDown解析 / 钉钉同步</div>
+                        <div class="mt-2 flex justify-between items-end">
+                            <span class="text-2xl font-bold text-yellow-600">12</span>
+                            <span class="text-xs text-gray-400">积压任务数 (处理中)</span>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <div class="text-xs text-gray-500 font-bold mb-1 uppercase">worker-low</div>
+                        <div class="text-sm text-gray-700">知识库文件夹定时摘要</div>
+                        <div class="mt-2 flex justify-between items-end">
+                            <span class="text-2xl font-bold text-green-600">0</span>
+                            <span class="text-xs text-gray-400">积压任务数</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 初始化图表 -->
+    <script>
+        const ctx = document.getElementById('tokenChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                datasets: [{
+                    label: 'Input Tokens (万)',
+                    data: [120, 150, 140, 180, 160, 40, 30],
+                    borderColor: '#1677ff',
+                    backgroundColor: 'rgba(22, 119, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Output Tokens (万)',
+                    data: [20, 25, 22, 30, 28, 8, 5],
+                    borderColor: '#ff4d4f',
+                    backgroundColor: 'rgba(255, 77, 79, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业AI知识库 - 文件管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { ant: '#1677ff', bg: '#f5f5f5' } } } }
+    </script>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden font-sans">
+    <!-- 侧边栏 (简化版) -->
+    <div class="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm z-10">
+        <div class="h-16 flex items-center px-4 border-b border-gray-200 font-bold text-lg text-gray-800 tracking-wide">
+            <i class="fa-solid fa-brain text-ant mr-2"></i> Enterprise KB
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto">
+            <ul class="space-y-1 text-sm text-gray-600 mb-6">
+                <li class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer transition-colors">
+                    <i class="fa-regular fa-comments w-5 text-center"></i> <span>智能问答</span>
+                </li>
+                <li class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer text-ant bg-blue-50 font-medium transition-colors">
+                    <i class="fa-regular fa-folder-open w-5 text-center"></i> <span>全部文件</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="flex-1 flex flex-col bg-white">
+        <!-- 顶部导航 & 面包屑 -->
+        <div class="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white shadow-sm z-0">
+            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                <span class="hover:text-ant cursor-pointer">全部文件</span>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                <span class="hover:text-ant cursor-pointer">2026年项目文档</span>
+                <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                <span class="font-medium text-gray-800">技术规范</span>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="搜索文件..." class="pl-9 pr-4 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-ant focus:ring-1 focus:ring-ant transition-all">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 操作栏 -->
+        <div class="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+            <div class="space-x-3">
+                <button class="bg-ant text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i> 上传文件
+                </button>
+                <button class="bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
+                    <i class="fa-solid fa-folder-plus mr-1"></i> 新建文件夹
+                </button>
+            </div>
+            <div class="flex items-center space-x-2 text-gray-500">
+                <button class="p-1.5 rounded hover:bg-gray-100 transition-colors"><i class="fa-solid fa-list-ul"></i></button>
+                <button class="p-1.5 rounded hover:bg-gray-100 transition-colors"><i class="fa-solid fa-table-cells-large"></i></button>
+            </div>
+        </div>
+
+        <!-- 拖拽上传区域 -->
+        <div class="px-6 pt-4">
+            <div class="border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 p-6 flex flex-col items-center justify-center text-gray-500 hover:border-ant hover:bg-blue-50 transition-colors cursor-pointer group">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2 text-gray-400 group-hover:text-ant transition-colors"></i>
+                <p class="text-sm font-medium">点击或将文件拖拽到这里上传</p>
+                <p class="text-xs text-gray-400 mt-1">支持 Word, PDF, Excel, Markdown 等格式。大文件自动分片直传 MinIO。</p>
+            </div>
+        </div>
+
+        <!-- 文件列表 -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-xs text-gray-500 border-b border-gray-200">
+                        <th class="pb-3 font-medium px-2 w-10"><input type="checkbox" class="rounded border-gray-300 text-ant focus:ring-ant"></th>
+                        <th class="pb-3 font-medium">文件名</th>
+                        <th class="pb-3 font-medium">AI 状态</th>
+                        <th class="pb-3 font-medium">大小</th>
+                        <th class="pb-3 font-medium">更新时间</th>
+                        <th class="pb-3 font-medium">操作</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700">
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors group cursor-pointer">
+                        <td class="py-3 px-2"><input type="checkbox" class="rounded border-gray-300 text-ant focus:ring-ant"></td>
+                        <td class="py-3 flex items-center space-x-3">
+                            <i class="fa-solid fa-file-pdf text-red-500 text-lg"></i>
+                            <span class="font-medium">技术原理解析.pdf</span>
+                        </td>
+                        <td class="py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fa-solid fa-check-circle mr-1"></i> 已向量化
+                            </span>
+                        </td>
+                        <td class="py-3 text-gray-500">12.5 MB</td>
+                        <td class="py-3 text-gray-500">2026-03-02 10:30</td>
+                        <td class="py-3">
+                            <div class="flex items-center space-x-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fa-solid fa-share-nodes hover:text-ant cursor-pointer" title="分享"></i>
+                                <i class="fa-solid fa-download hover:text-ant cursor-pointer" title="下载"></i>
+                                <i class="fa-solid fa-trash hover:text-red-500 cursor-pointer" title="删除"></i>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors group cursor-pointer">
+                        <td class="py-3 px-2"><input type="checkbox" class="rounded border-gray-300 text-ant focus:ring-ant"></td>
+                        <td class="py-3 flex items-center space-x-3">
+                            <i class="fa-solid fa-file-word text-blue-500 text-lg"></i>
+                            <span class="font-medium">架构设计v3.2.md</span>
+                        </td>
+                        <td class="py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                <i class="fa-solid fa-circle-notch fa-spin mr-1"></i> 索引生成中
+                            </span>
+                        </td>
+                        <td class="py-3 text-gray-500">45 KB</td>
+                        <td class="py-3 text-gray-500">2026-03-02 09:15</td>
+                        <td class="py-3">
+                            <div class="flex items-center space-x-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fa-solid fa-share-nodes hover:text-ant cursor-pointer" title="分享"></i>
+                                <i class="fa-solid fa-download hover:text-ant cursor-pointer" title="下载"></i>
+                                <i class="fa-solid fa-trash hover:text-red-500 cursor-pointer" title="删除"></i>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors group cursor-pointer opacity-60">
+                        <td class="py-3 px-2"><input type="checkbox" class="rounded border-gray-300 text-ant focus:ring-ant"></td>
+                        <td class="py-3 flex items-center space-x-3">
+                            <i class="fa-solid fa-file-video text-purple-500 text-lg"></i>
+                            <span class="font-medium">全员大会录屏.mp4</span>
+                        </td>
+                        <td class="py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                不支持索引
+                            </span>
+                        </td>
+                        <td class="py-3 text-gray-500">450 MB</td>
+                        <td class="py-3 text-gray-500">2026-03-01 16:40</td>
+                        <td class="py-3">
+                            <div class="flex items-center space-x-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fa-solid fa-share-nodes hover:text-ant cursor-pointer" title="分享"></i>
+                                <i class="fa-solid fa-download hover:text-ant cursor-pointer" title="下载"></i>
+                                <i class="fa-solid fa-trash hover:text-red-500 cursor-pointer" title="删除"></i>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 浮动上传进度面板 -->
+    <div class="fixed bottom-6 right-6 w-80 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden flex flex-col z-50">
+        <div class="bg-gray-50 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+            <span class="text-sm font-medium text-gray-700">正在上传 (1/2)</span>
+            <div class="space-x-2 text-gray-400">
+                <i class="fa-solid fa-minus cursor-pointer hover:text-gray-600"></i>
+                <i class="fa-solid fa-times cursor-pointer hover:text-gray-600"></i>
+            </div>
+        </div>
+        <div class="p-4 space-y-4 max-h-64 overflow-y-auto">
+            <!-- 正在上传的大文件 -->
+            <div>
+                <div class="flex items-center justify-between text-xs mb-1">
+                    <span class="font-medium text-gray-700 truncate w-48" title="2026年度业务数据明细.csv">2026年度业务数据明细.csv</span>
+                    <span class="text-ant">45%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1">
+                    <div class="bg-ant h-1.5 rounded-full" style="width: 45%"></div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-gray-400">
+                    <span>分片直传中 (5MB/片) - 10/22</span>
+                    <span>12 MB/s</span>
+                </div>
+            </div>
+            
+            <!-- 等待哈希计算的文件 -->
+            <div>
+                <div class="flex items-center justify-between text-xs mb-1">
+                    <span class="font-medium text-gray-700 truncate w-48" title="Q1财报.pdf">Q1财报.pdf</span>
+                    <span class="text-gray-500">等待中</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1">
+                    <div class="bg-gray-300 h-1.5 rounded-full" style="width: 100%"></div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-gray-400">
+                    <span class="text-blue-500"><i class="fa-solid fa-spinner fa-spin"></i> 计算头部 SHA-256指纹...</span>
+                    <span>等待上传</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

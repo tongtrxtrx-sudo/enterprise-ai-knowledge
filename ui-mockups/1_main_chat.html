@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业AI知识库 - 智能问答</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { ant: '#1677ff', bg: '#f5f5f5' } } } }
+    </script>
+</head>
+<body class="bg-gray-50 h-screen flex overflow-hidden font-sans">
+    <!-- 侧边栏 -->
+    <div class="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm z-10">
+        <div class="h-16 flex items-center px-4 border-b border-gray-200 font-bold text-lg text-gray-800 tracking-wide">
+            <i class="fa-solid fa-brain text-ant mr-2"></i> Enterprise KB
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto">
+            <div class="text-xs text-gray-400 font-bold mb-2 uppercase tracking-wider">个人空间</div>
+            <ul class="space-y-1 text-sm text-gray-600 mb-6">
+                <li class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer text-ant bg-blue-50 font-medium transition-colors">
+                    <i class="fa-regular fa-comments w-5 text-center"></i> <span>智能问答</span>
+                </li>
+                <li class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer transition-colors">
+                    <i class="fa-regular fa-folder-open w-5 text-center"></i> <span>全部文件</span>
+                </li>
+            </ul>
+            <div class="text-xs text-gray-400 font-bold mb-2 uppercase tracking-wider">知识目录树 (自动聚类)</div>
+            <ul class="space-y-1 text-sm text-gray-600">
+                <li class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer transition-colors">
+                    <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i> <i class="fa-solid fa-folder text-blue-400"></i> <span>人力资源政策</span>
+                </li>
+                <li class="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer transition-colors">
+                    <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i> <i class="fa-solid fa-folder-open text-blue-400"></i> <span>2026年技术架构</span>
+                </li>
+                <li class="flex items-center space-x-2 pl-6 p-2 hover:bg-gray-100 rounded cursor-pointer transition-colors">
+                    <i class="fa-solid fa-file-pdf text-red-500"></i> <span class="truncate">技术原理解析.pdf</span>
+                </li>
+                <li class="flex items-center space-x-2 pl-6 p-2 hover:bg-gray-100 rounded cursor-pointer transition-colors">
+                    <i class="fa-solid fa-file-word text-blue-500"></i> <span class="truncate">架构设计v3.2.md</span>
+                </li>
+            </ul>
+        </div>
+        <div class="p-4 border-t border-gray-200 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-ant text-white flex items-center justify-center font-bold shadow-sm">A</div>
+                <div class="text-sm font-medium text-gray-700">Admin User</div>
+            </div>
+            <i class="fa-solid fa-gear text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="flex-1 flex flex-col bg-white">
+        <!-- 顶部导航 -->
+        <div class="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white shadow-sm z-0">
+            <div class="font-medium text-gray-800 flex items-center">
+                <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs mr-2 border border-gray-200">当前会话</span>
+                深度技术架构审查
+            </div>
+            <div class="space-x-4">
+                <button class="text-gray-500 hover:text-ant text-sm transition-colors"><i class="fa-solid fa-share-nodes mr-1"></i> 分享对话</button>
+                <button class="text-gray-500 hover:text-ant text-sm transition-colors"><i class="fa-solid fa-clock-rotate-left mr-1"></i> 历史记录</button>
+            </div>
+        </div>
+        
+        <!-- 聊天流 -->
+        <div class="flex-1 overflow-y-auto p-6 bg-gray-50 flex flex-col space-y-6">
+            <!-- 欢迎消息 -->
+            <div class="flex items-start space-x-4">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-ant text-white flex items-center justify-center shadow-md flex-shrink-0"><i class="fa-solid fa-robot"></i></div>
+                <div class="flex-1">
+                    <div class="bg-white p-4 rounded-xl rounded-tl-none shadow-sm border border-gray-100 text-gray-700 max-w-3xl leading-relaxed">
+                        您好！我是企业专属知识库助手。您可以向我提问（例如：<em>"最新的请假流程是什么？"</em>），或者在输入框中通过 <code>/</code> 唤起特定文件进行阅读。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户消息 -->
+            <div class="flex items-start flex-row-reverse space-x-reverse space-x-4">
+                <div class="w-8 h-8 rounded bg-ant text-white flex items-center justify-center shadow-md flex-shrink-0">A</div>
+                <div class="flex-1 flex justify-end">
+                    <div class="bg-ant p-4 rounded-xl rounded-tr-none shadow-sm text-white max-w-3xl leading-relaxed">
+                        系统当前的 Reranker 模型是如何部署的？会阻塞请求吗？
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 回复 (含引用) -->
+            <div class="flex items-start space-x-4">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-ant text-white flex items-center justify-center shadow-md flex-shrink-0"><i class="fa-solid fa-robot"></i></div>
+                <div class="flex-1">
+                    <div class="bg-white p-5 rounded-xl rounded-tl-none shadow-sm border border-gray-100 text-gray-700 max-w-3xl leading-relaxed">
+                        <div class="flex items-center space-x-2 text-xs text-gray-400 mb-3 pb-2 border-b border-gray-50">
+                            <i class="fa-solid fa-bolt text-green-500"></i> <span>主路检索完成 (210ms)</span>
+                            <span class="px-1 text-gray-300">|</span>
+                            <i class="fa-solid fa-ban text-orange-400"></i> <span>取消辅路延迟启动</span>
+                        </div>
+                        
+                        根据最新的系统架构设计（v3.2）：
+                        <br><br>
+                        当前的 <strong>BGE-Reranker-Base</strong> 模型是通过 <code>ProcessPoolExecutor</code> 放入独立的 CPU 进程池中进行推理的。
+                        <br><br>
+                        这样设计的目的是为了避免纯 CPU 计算阻塞 FastAPI 的单线程异步事件循环（<code>asyncio</code>）。如果不做隔离，单次 Reranker 推理（约100ms）会挂起整个主线程，导致高并发场景下其他用户请求（甚至包括简单的静态资源获取）被完全阻塞，从而引发严重的性能瓶颈 <sup class="text-xs bg-blue-100 text-ant px-1.5 py-0.5 rounded cursor-pointer hover:bg-blue-200 transition-colors">1</sup>。
+                        
+                        <div class="mt-5 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+                            <div class="flex-shrink-0 bg-gray-50 border border-gray-200 rounded p-2 flex items-center space-x-2 text-xs cursor-pointer hover:bg-gray-100 hover:border-blue-300 transition-all shadow-sm">
+                                <i class="fa-solid fa-file-word text-blue-500 text-lg"></i>
+                                <div class="flex flex-col">
+                                    <span class="truncate w-40 font-medium">架构设计v3.2.md</span>
+                                    <span class="text-gray-400">匹配度: 0.92</span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 bg-gray-50 border border-gray-200 rounded p-2 flex items-center space-x-2 text-xs cursor-pointer hover:bg-gray-100 hover:border-blue-300 transition-all shadow-sm">
+                                <i class="fa-solid fa-file-pdf text-red-500 text-lg"></i>
+                                <div class="flex flex-col">
+                                    <span class="truncate w-40 font-medium">技术原理解析.pdf</span>
+                                    <span class="text-gray-400">匹配度: 0.88</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="bg-white border-t border-gray-200 p-4 pb-6">
+            <div class="max-w-4xl mx-auto relative flex items-end shadow-sm border border-gray-300 rounded-xl overflow-hidden focus-within:border-ant focus-within:ring-2 focus-within:ring-blue-100 transition-all bg-white">
+                <button class="p-3 mb-1 ml-1 text-gray-400 hover:text-ant transition-colors rounded-lg hover:bg-gray-100"><i class="fa-solid fa-paperclip text-lg"></i></button>
+                <textarea rows="1" class="flex-1 py-4 px-2 outline-none resize-none max-h-32 text-gray-700 bg-transparent placeholder-gray-400" placeholder="向知识库提问，或输入 / 唤起指令..."></textarea>
+                <button class="p-2 mb-2 mr-2 text-white bg-ant hover:bg-blue-600 transition-colors rounded-lg shadow-sm flex items-center justify-center w-10 h-10"><i class="fa-solid fa-arrow-up"></i></button>
+            </div>
+            <div class="text-center text-xs text-gray-400 mt-3 flex items-center justify-center space-x-4">
+                <span><i class="fa-solid fa-shield-halved mr-1"></i> 企业数据内网隔离</span>
+                <span>内容由 AI 生成，请注意甄别。</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

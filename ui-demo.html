@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业级AI知识库系统 - 产品原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af; 
+        }
+        .ant-style-btn {
+            transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+        .ant-style-btn:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+        .typing-indicator span {
+            animation: blink 1.4s infinite both;
+            height: 4px;
+            width: 4px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 1px;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0% { opacity: 0.2; }
+            20% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen w-screen overflow-hidden flex font-sans text-gray-800">
+
+    <!-- 左侧边栏 -->
+    <aside class="w-72 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-[2px_0_8px_rgba(0,0,0,0.02)] z-20">
+        <!-- 头部 Logo -->
+        <div class="h-16 flex items-center px-6 border-b border-gray-100 shrink-0">
+            <div class="flex items-center gap-2 text-blue-600">
+                <i class="fa-solid fa-cube text-2xl"></i>
+                <span class="text-lg font-bold tracking-tight">企业知识大脑</span>
+            </div>
+        </div>
+
+        <!-- 顶部操作区 -->
+        <div class="p-4 shrink-0">
+            <button class="ant-style-btn w-full bg-blue-600 text-white rounded-lg py-2.5 flex items-center justify-center gap-2 shadow-sm font-medium text-sm">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                上传文件 / 文件夹
+            </button>
+        </div>
+
+        <!-- 文件树区域 -->
+        <div class="flex-1 overflow-y-auto px-3 pb-4">
+            
+            <!-- 个人空间 -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2 px-3">
+                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">个人空间</div>
+                    <i class="fa-solid fa-plus text-gray-400 hover:text-blue-500 cursor-pointer text-xs p-1"></i>
+                </div>
+                
+                <div class="space-y-0.5">
+                    <!-- 文件夹: 2024年Q3合同 -->
+                    <div class="group cursor-pointer">
+                        <div class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-700">
+                            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 w-3 text-center"></i>
+                            <i class="fa-solid fa-folder text-blue-400"></i>
+                            <span class="flex-1 truncate">2024年Q3合同</span>
+                            <span class="text-xs text-gray-400 hidden group-hover:block"><i class="fa-solid fa-ellipsis"></i></span>
+                        </div>
+                        <!-- 子文件列表 -->
+                        <div class="ml-6 pl-2 border-l border-gray-200 space-y-0.5 mt-0.5 relative">
+                            <div class="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-600 cursor-pointer group/file">
+                                <i class="fa-regular fa-file-pdf text-red-500"></i>
+                                <span class="flex-1 truncate">华东区代理协议.pdf</span>
+                            </div>
+                            <div class="flex items-center gap-2 px-2 py-1.5 bg-blue-50 rounded-md text-sm text-blue-700 font-medium cursor-pointer group/file">
+                                <i class="fa-regular fa-file-word text-blue-500"></i>
+                                <span class="flex-1 truncate">采购合同_v2.docx</span>
+                                <!-- 解析状态标签 -->
+                                <span class="text-[10px] bg-blue-100 text-blue-600 px-1.5 rounded-sm" title="MarkItDown 已解析入库">已索引</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件夹: 报销单据 -->
+                    <div class="group cursor-pointer mt-1">
+                        <div class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-700">
+                            <i class="fa-solid fa-chevron-right text-[10px] text-gray-400 w-3 text-center"></i>
+                            <i class="fa-solid fa-folder text-blue-400"></i>
+                            <span class="flex-1 truncate">报销单据</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 部门共享 -->
+            <div class="mb-5">
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">部门共享 (销售部)</div>
+                <div class="space-y-0.5">
+                    <div class="group cursor-pointer">
+                        <div class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-700">
+                            <i class="fa-solid fa-chevron-right text-[10px] text-gray-400 w-3 text-center"></i>
+                            <i class="fa-solid fa-folder-shared text-emerald-500"></i>
+                            <span class="flex-1 truncate">产品宣发物料</span>
+                        </div>
+                    </div>
+                    <div class="group cursor-pointer">
+                        <div class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-700">
+                            <i class="fa-solid fa-chevron-right text-[10px] text-gray-400 w-3 text-center"></i>
+                            <i class="fa-solid fa-folder-shared text-emerald-500"></i>
+                            <span class="flex-1 truncate">Q3销售数据汇总</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 公共知识库 -->
+            <div class="mb-5">
+                <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">公共知识库</div>
+                <div class="space-y-0.5">
+                    <div class="group cursor-pointer">
+                        <div class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-700">
+                            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 w-3 text-center"></i>
+                            <i class="fa-solid fa-book text-purple-500"></i>
+                            <span class="flex-1 truncate">公司制度</span>
+                        </div>
+                        <div class="ml-6 pl-2 border-l border-gray-200 space-y-0.5 mt-0.5 relative">
+                            <div class="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-600 cursor-pointer">
+                                <i class="fa-regular fa-file-pdf text-red-500"></i>
+                                <span class="flex-1 truncate">2024版员工考勤与假期管理办法.pdf</span>
+                            </div>
+                            <div class="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded-md text-sm text-gray-600 cursor-pointer">
+                                <i class="fa-regular fa-file-word text-blue-500"></i>
+                                <span class="flex-1 truncate">员工手册_v3.docx</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部用户信息 -->
+        <div class="p-4 border-t border-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-50 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-inner relative">
+                    张
+                    <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-800 leading-tight">张三</span>
+                    <span class="text-[11px] text-gray-400 mt-0.5">销售部 | 钉钉已认证</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-gear text-gray-400 hover:text-gray-600 transition-colors"></i>
+        </div>
+    </aside>
+
+    <!-- 右侧主内容区 (聊天UI) -->
+    <main class="flex-1 flex flex-col bg-white relative h-full">
+        <!-- 顶部导航条 -->
+        <header class="h-16 border-b border-gray-100 flex items-center justify-between px-6 bg-white/80 backdrop-blur-md z-10 shrink-0">
+            <div class="flex items-center gap-4">
+                <h1 class="text-[15px] font-semibold text-gray-800">智能助理对话</h1>
+                <div class="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-md border border-emerald-100/50">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span class="text-[11px] font-medium text-emerald-700">Deep RAG / BM25 检索就绪</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-gray-500">
+                <button class="p-2 hover:bg-gray-100 rounded-lg text-sm transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-clock-rotate-left"></i> <span class="hidden sm:inline">历史记录</span>
+                </button>
+                <div class="w-px h-4 bg-gray-200 mx-1"></div>
+                <button class="p-2 hover:bg-red-50 hover:text-red-500 rounded-lg text-sm transition-colors" title="清空对话">
+                    <i class="fa-regular fa-trash-can"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 聊天流容器 -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth" id="chat-container">
+            <div class="max-w-4xl mx-auto space-y-6 pb-4">
+                
+                <!-- 欢迎引导语 -->
+                <div class="flex flex-col items-center justify-center py-8 text-center animate-fade-in-up">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-blue-100/50">
+                        <img src="https://api.iconify.design/lucide:robot-outline.svg?color=%232563eb" class="w-8 h-8 opacity-80" alt="AI"/>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">你好，张三！今天需要什么帮助？</h2>
+                    <p class="text-gray-500 text-xs sm:text-sm max-w-md leading-relaxed">
+                        支持自然语言管理个人文件，以及跨部门文档的深度 RAG 问答。<br/>数据严格存储于企业内网，最小化出网。
+                    </p>
+                    
+                    <!-- 快捷指令网格 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 w-full max-w-xl">
+                        <button class="px-4 py-3 bg-white hover:bg-blue-50 hover:border-blue-200 border border-gray-200 rounded-xl text-left text-sm transition-all text-gray-700 shadow-sm flex items-start gap-3 group">
+                            <div class="mt-0.5 p-1.5 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-file-contract text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium mb-0.5">总结文件</div>
+                                <div class="text-xs text-gray-400">帮我总结《华东区代理协议》</div>
+                            </div>
+                        </button>
+                        <button class="px-4 py-3 bg-white hover:bg-emerald-50 hover:border-emerald-200 border border-gray-200 rounded-xl text-left text-sm transition-all text-gray-700 shadow-sm flex items-start gap-3 group">
+                            <div class="mt-0.5 p-1.5 bg-emerald-100 text-emerald-600 rounded-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium mb-0.5">制度检索</div>
+                                <div class="text-xs text-gray-400">查找关于离职补偿的规定</div>
+                            </div>
+                        </button>
+                        <button class="px-4 py-3 bg-white hover:bg-purple-50 hover:border-purple-200 border border-gray-200 rounded-xl text-left text-sm transition-all text-gray-700 shadow-sm flex items-start gap-3 group">
+                            <div class="mt-0.5 p-1.5 bg-purple-100 text-purple-600 rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-folder-tree text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium mb-0.5">文件管理</div>
+                                <div class="text-xs text-gray-400">新建一个"2024项目资料"文件夹</div>
+                            </div>
+                        </button>
+                        <button class="px-4 py-3 bg-white hover:bg-orange-50 hover:border-orange-200 border border-gray-200 rounded-xl text-left text-sm transition-all text-gray-700 shadow-sm flex items-start gap-3 group">
+                            <div class="mt-0.5 p-1.5 bg-orange-100 text-orange-600 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-table-cells text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium mb-0.5">表格分析</div>
+                                <div class="text-xs text-gray-400">分析Q3销售数据表的总营收</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center my-6">
+                    <div class="h-px bg-gray-200 flex-1 max-w-[100px]"></div>
+                    <span class="text-[10px] text-gray-400 px-3 uppercase tracking-wider">今日对话记录</span>
+                    <div class="h-px bg-gray-200 flex-1 max-w-[100px]"></div>
+                </div>
+
+                <!-- 气泡：用户文件操作指令 -->
+                <div class="flex gap-4 justify-end">
+                    <div class="bg-blue-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm shadow-sm max-w-2xl text-sm leading-relaxed">
+                        把刚才拖拽上传的 <span class="bg-blue-500 px-1.5 py-0.5 rounded text-xs border border-blue-400"><i class="fa-regular fa-file-word mr-1"></i>采购合同_v2.docx</span> 放到 "2024年Q3合同" 文件夹里，并提取一下关键金额。
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold mt-1 shadow-sm">张</div>
+                </div>
+
+                <!-- 气泡：AI 文件操作回复 -->
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex-shrink-0 flex items-center justify-center text-blue-600 mt-1 shadow-sm">
+                        <img src="https://api.iconify.design/lucide:robot-outline.svg?color=%232563eb" class="w-5 h-5 opacity-80" alt="AI"/>
+                    </div>
+                    <div class="bg-white border border-gray-100 px-5 py-4 rounded-2xl rounded-tl-sm shadow-sm max-w-2xl w-full">
+                        <div class="flex items-center gap-2 mb-3 text-sm text-gray-800 font-medium">
+                            <i class="fa-solid fa-circle-check text-emerald-500"></i> 操作已完成，解析结果如下
+                        </div>
+                        <p class="text-[13px] text-gray-600 mb-4">文件已移动至目标文件夹。通过后台异步模型，提取了该合同的关键实体信息：</p>
+                        
+                        <!-- 实体提取卡片 -->
+                        <div class="bg-gray-50 border border-gray-200/60 rounded-xl p-3.5 mb-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> AI 智能提取 (Level 2 索引)</div>
+                                <div class="text-[10px] text-gray-400 bg-white px-1.5 py-0.5 rounded border border-gray-200">通义千问 API</div>
+                            </div>
+                            <ul class="text-[13px] text-gray-700 space-y-2">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-gray-400 w-16 shrink-0 mt-0.5">合同总额:</span> 
+                                    <span class="font-semibold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">¥ 1,250,000.00</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-gray-400 w-16 shrink-0 mt-0.5">签约方:</span> 
+                                    <span>杭州某某网络科技有限公司</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-gray-400 w-16 shrink-0 mt-0.5">有效期限:</span> 
+                                    <span class="bg-gray-200/50 px-1.5 py-0.5 rounded text-xs">2024-07-01</span> <span class="text-gray-400 text-xs mt-0.5">至</span> <span class="bg-gray-200/50 px-1.5 py-0.5 rounded text-xs">2025-06-30</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 操作按钮 -->
+                        <div class="flex gap-2 mt-4 border-t border-gray-100 pt-3">
+                            <button class="text-[12px] bg-white border border-gray-200 hover:bg-gray-50 hover:text-blue-600 px-3 py-1.5 rounded-lg text-gray-600 transition-colors shadow-sm flex items-center gap-1.5">
+                                <i class="fa-regular fa-eye"></i> 预览 PDF
+                            </button>
+                            <button class="text-[12px] bg-white border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-gray-600 transition-colors shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-tags"></i> 调整标签
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 气泡：用户知识问答 -->
+                <div class="flex gap-4 justify-end mt-2">
+                    <div class="bg-blue-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm shadow-sm max-w-2xl text-sm leading-relaxed">
+                        根据公司最新的制度规定，员工的婚假有几天？需要提前多久在OA申请？
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold mt-1 shadow-sm">张</div>
+                </div>
+
+                <!-- 气泡：AI Deep RAG 问答回复 -->
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex-shrink-0 flex items-center justify-center text-blue-600 mt-1 shadow-sm">
+                        <img src="https://api.iconify.design/lucide:robot-outline.svg?color=%232563eb" class="w-5 h-5 opacity-80" alt="AI"/>
+                    </div>
+                    <div class="bg-white border border-gray-100 px-5 py-4 rounded-2xl rounded-tl-sm shadow-sm max-w-2xl w-full relative">
+                        
+                        <!-- RAG 思考过程卡片 (可折叠样式) -->
+                        <details class="mb-4 bg-gray-50 border border-gray-100 rounded-lg group text-[12px]" open>
+                            <summary class="px-3 py-2 cursor-pointer font-medium text-gray-600 flex items-center gap-2 hover:bg-gray-100/50 rounded-lg">
+                                <i class="fa-solid fa-code-branch text-blue-500"></i> Deep RAG 检索路径 (0.8s)
+                                <i class="fa-solid fa-chevron-down ml-auto text-gray-400 group-open:rotate-180 transition-transform text-[10px]"></i>
+                            </summary>
+                            <div class="px-3 pb-3 pt-1 border-t border-gray-100/50 flex flex-col gap-2 mt-1">
+                                <div class="flex gap-2 items-start text-gray-500">
+                                    <div class="mt-0.5 text-gray-400"><i class="fa-solid fa-circle-right text-[8px]"></i></div>
+                                    <div>预过滤路由：判定意图为 <code class="bg-gray-200/50 px-1 py-0.5 rounded text-[10px]">skill_public_kb_search</code></div>
+                                </div>
+                                <div class="flex gap-2 items-start text-gray-500">
+                                    <div class="mt-0.5 text-gray-400"><i class="fa-solid fa-circle-right text-[8px]"></i></div>
+                                    <div>索引导航：选中公共知识库 <span class="text-blue-500 border border-blue-100 bg-blue-50 px-1 rounded">公司制度</span> 文件夹</div>
+                                </div>
+                                <div class="flex gap-2 items-start text-emerald-600">
+                                    <div class="mt-0.5 text-emerald-500"><i class="fa-solid fa-check text-[10px]"></i></div>
+                                    <div>BM25检索：命中 <span class="underline underline-offset-2 decoration-emerald-200">2024版员工考勤与假期管理办法.pdf</span> 及其相关段落</div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- 答案正文 -->
+                        <div class="text-[14px] text-gray-800 leading-[1.7] space-y-3">
+                            <p>根据公司最新的制度文档规定，婚假的安排及申请流程如下：</p>
+                            <div class="pl-4 border-l-2 border-blue-200 space-y-2 my-2">
+                                <p><strong>1. 婚假天数</strong>：符合法定结婚年龄的员工，可享受 <strong>13天</strong> 的带薪婚假（包含国家法定婚假3天，以及公司额外福利假10天）。<sup class="text-blue-600 cursor-pointer hover:underline text-[10px] font-bold">[1]</sup></p>
+                                <p><strong>2. 申请时效</strong>：需至少 <strong>提前14个工作日</strong> 在内部OA系统提交休假流程，并在附件中上传结婚证扫描件。<sup class="text-blue-600 cursor-pointer hover:underline text-[10px] font-bold">[1]</sup></p>
+                                <p><strong>3. 有效期说明</strong>：婚假必须在领取结婚证之日起的 <strong>1年内</strong> 一次性休完，不支持拆分或跨年度结转。<sup class="text-blue-600 cursor-pointer hover:underline text-[10px] font-bold">[2]</sup></p>
+                            </div>
+                            <p class="text-[13px] text-gray-500 mt-2">提示：申请通过后，请提前做好工作交接安排。</p>
+                        </div>
+                        
+                        <!-- 引用来源底栏 -->
+                        <div class="mt-5 pt-3 border-t border-gray-100/80">
+                            <div class="text-[11px] text-gray-400 mb-2 flex items-center gap-1"><i class="fa-solid fa-link"></i> 引用来源 (点击预览内容)</div>
+                            <div class="flex flex-wrap gap-2">
+                                <div class="flex items-center gap-1.5 bg-white border border-gray-200 rounded-md px-2 py-1.5 text-xs text-gray-600 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:shadow-sm transition-all group">
+                                    <span class="text-white bg-blue-500 rounded text-[9px] px-1 font-bold">1</span>
+                                    <i class="fa-regular fa-file-pdf text-red-500"></i>
+                                    2024版员工考勤与假期管理办法.pdf
+                                </div>
+                                <div class="flex items-center gap-1.5 bg-white border border-gray-200 rounded-md px-2 py-1.5 text-xs text-gray-600 cursor-pointer hover:border-blue-400 hover:text-blue-600 hover:shadow-sm transition-all group">
+                                    <span class="text-white bg-blue-500 rounded text-[9px] px-1 font-bold">2</span>
+                                    <i class="fa-regular fa-file-word text-blue-500"></i>
+                                    员工手册_v3.docx
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 满意度反馈收集 -->
+                        <div class="absolute bottom-3 right-4 flex items-center gap-1 text-gray-400 bg-white shadow-sm border border-gray-100 rounded-lg p-0.5">
+                            <button class="hover:text-emerald-500 hover:bg-emerald-50 rounded p-1.5 transition-colors" title="回答准确"><i class="fa-regular fa-thumbs-up text-xs"></i></button>
+                            <button class="hover:text-red-500 hover:bg-red-50 rounded p-1.5 transition-colors" title="回答有误"><i class="fa-regular fa-thumbs-down text-xs"></i></button>
+                            <div class="w-px h-3 bg-gray-200 mx-0.5"></div>
+                            <button class="hover:text-yellow-500 hover:bg-yellow-50 rounded p-1.5 transition-colors text-xs flex items-center gap-1" title="保存为公共QA"><i class="fa-regular fa-bookmark"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-6"></div> <!-- Bottom padding -->
+            </div>
+        </div>
+
+        <!-- 底部输入区域 (悬浮式设计) -->
+        <div class="p-4 sm:p-5 bg-gradient-to-t from-white via-white to-transparent shrink-0">
+            <div class="max-w-4xl mx-auto relative group">
+                
+                <!-- 拖拽覆盖层 (隐藏状态, 仅在拖拽时显示) -->
+                <div class="hidden absolute -top-14 left-0 right-0 h-12 bg-blue-50 border-2 border-blue-300 border-dashed rounded-xl flex items-center justify-center text-blue-600 text-sm font-medium z-10 shadow-sm backdrop-blur-sm">
+                    <i class="fa-solid fa-cloud-arrow-up mr-2 text-lg"></i> 松开鼠标以上传文件并开始对话
+                </div>
+
+                <div class="relative flex items-end bg-white border border-gray-300 shadow-[0_2px_12px_rgba(0,0,0,0.06)] rounded-2xl p-2 pb-2 focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all duration-200 z-20">
+                    
+                    <!-- 附件按钮 -->
+                    <button class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors self-end mb-0.5 flex-shrink-0 relative">
+                        <i class="fa-solid fa-paperclip text-[16px]"></i>
+                    </button>
+                    
+                    <!-- 文本输入框 -->
+                    <textarea 
+                        class="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-3 px-3 text-[14px] text-gray-800 placeholder-gray-400 leading-relaxed outline-none" 
+                        placeholder="输入问题指令，或直接拖拽文件到窗口中..."
+                        rows="1"
+                        id="chat-input"
+                    ></textarea>
+                    
+                    <!-- 发送按钮容器 -->
+                    <div class="flex flex-col justify-end gap-1.5 mb-1.5 mr-1.5 flex-shrink-0">
+                        <!-- AI 模型状态指示器 -->
+                        <div class="text-[10px] text-gray-400 text-right pr-1 font-medium flex items-center justify-end gap-1 cursor-help" title="当前路由状态: 主供应商正常">
+                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> 混合推理
+                        </div>
+                        <button class="w-9 h-9 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center shadow-md shadow-blue-600/20 transition-all ant-style-btn">
+                            <i class="fa-solid fa-arrow-up text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 底部免责声明 -->
+                <div class="text-center mt-3 text-[11px] text-gray-400">
+                    内容由内部 AI 模型分析生成，实际执行请以源文件为准。 系统满足 <a href="#" class="text-gray-500 hover:text-blue-500 underline decoration-gray-300 underline-offset-2">企业最小出网安全规范</a>。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 预览弹窗模拟 (隐藏状态，仅作结构预留) -->
+    <div class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-8">
+        <div class="bg-white w-full max-w-5xl h-full max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div class="h-14 border-b border-gray-100 flex items-center justify-between px-4 bg-gray-50">
+                <div class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <i class="fa-regular fa-file-pdf text-red-500"></i> 2024版员工考勤与假期管理办法.pdf
+                </div>
+                <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="flex-1 bg-gray-100 flex items-center justify-center text-gray-400">
+                <div class="text-center">
+                    <i class="fa-regular fa-file-pdf text-4xl mb-2"></i>
+                    <p>PDF 预览区域 (Gotenberg 提供支持)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 文本框自适应高度逻辑
+    const tx = document.getElementById('chat-input');
+    tx.setAttribute('style', 'height:' + (tx.scrollHeight) + 'px;overflow-y:hidden;');
+    tx.addEventListener("input", function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        if (this.scrollHeight > 128) {
+            this.style.overflowY = 'auto';
+        } else {
+            this.style.overflowY = 'hidden';
+        }
+    }, false);
+</script>
+</body>
+</html>
