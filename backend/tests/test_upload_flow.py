@@ -145,7 +145,7 @@ def test_same_name_new_hash_creates_new_version(upload_context) -> None:
     assert payload["code"] == "uploaded"
 
 
-def test_success_persists_minio_layout_and_processing_status(upload_context) -> None:
+def test_success_persists_minio_layout_and_parse_status(upload_context) -> None:
     client, session_factory, models_module = upload_context
     response = _upload(
         client,
@@ -167,7 +167,7 @@ def test_success_persists_minio_layout_and_processing_status(upload_context) -> 
             )
         )
         assert record is not None
-        assert record.parse_status == "processing"
+        assert record.parse_status in {"normal", "degraded"}
 
 
 def test_success_triggers_parse_task_asynchronously(

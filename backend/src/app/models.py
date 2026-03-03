@@ -1,6 +1,15 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -56,6 +65,51 @@ class UploadRecord(Base):
     parse_status: Mapped[str] = mapped_column(
         String(32), nullable=False, default="processing"
     )
+    source_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    markdown_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    parse_error: Mapped[str | None] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+
+
+class IndexTree(Base):
+    __tablename__ = "index_tree"
+    __table_args__ = (UniqueConstraint("upload_id", name="uq_index_tree_upload_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    upload_id: Mapped[int] = mapped_column(
+        ForeignKey("upload_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    markdown_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    chunk_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+
+
+class DocChunk(Base):
+    __tablename__ = "doc_chunks"
+    __table_args__ = (
+        UniqueConstraint("upload_id", "chunk_index", name="uq_doc_chunks_upload_chunk"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    upload_id: Mapped[int] = mapped_column(
+        ForeignKey("upload_records.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    content_tsv: Mapped[str] = mapped_column(Text, nullable=False)
+    content_vector: Mapped[list[float] | None] = mapped_column(JSON, nullable=True)
+    vector_ready: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    read_allow: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )

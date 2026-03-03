@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_db_session
+from app.indexing.tasks import run_parse_pipeline
 from app.models import UploadRecord
 from app.schemas.upload import UploadSuccessResponse
 from app.upload_validation import has_executable_signature, is_safe_filename
@@ -24,7 +25,8 @@ router = APIRouter(prefix="/uploads", tags=["uploads"])
 
 
 def schedule_parse_task(upload_id: int, object_key: str) -> None:
-    _ = (upload_id, object_key)
+    _ = object_key
+    run_parse_pipeline(upload_id=upload_id)
 
 
 def _build_object_key(
@@ -105,6 +107,7 @@ async def create_upload(
         object_key=object_key,
         size_bytes=size_bytes,
         parse_status="processing",
+        source_text=content.decode("utf-8", errors="replace"),
     )
     session.add(record)
     session.commit()
