@@ -584,3 +584,82 @@ TESTING RESULTS:
    ✓ Compose contract validation: `docker compose --env-file .env.example -f infra/docker-compose.yml config` passed
 
 ================================================================================
+================================================================================
+
+================================================================================
+TASK ID: task-008
+TASK NAME: Build Frontend Workflow
+STATUS: complete
+TIMESTAMP: 2026-03-03T16:05:00Z
+WORKER AGENT: OpenCode
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Chat page must stream SSE answers and display citations. File manager must
+   handle upload and version actions with permission-based controls. Admin pages
+   must enforce admin-only access and show audit, user, and permission states.
+
+STEPS PROVIDED:
+   1. Create route shell with auth checks and permission-aware side navigation
+   2. Implement file upload, tree browsing, and version list components with mocked API types
+   3. Embed ONLYOFFICE iframe for single-user edit session and save callback handling
+   4. Add admin users, departments, permissions, and audit pages
+
+STEPS EXECUTED:
+   ✓ Step 1: Added app route shell with auth/admin guards and permission-aware side navigation
+   ✓ Step 2: Implemented file manager upload, folder tree grouping, and version list UI with typed API contracts
+   ✓ Step 3: Embedded ONLYOFFICE iframe component with save callback trigger for single-user session flow
+   ✓ Step 4: Added admin console pages for users, departments, permissions, and audit state
+
+WORK COMPLETED:
+   1. Migrated frontend scaffold to Vite + React + TypeScript with Vitest test setup
+   2. Added session store and query cache utilities for auth/permission-driven rendering
+   3. Implemented API client contracts for chat stream, upload, file visibility, versions, editing, and admin state
+   4. Delivered chat page with SSE chunk parsing and citation rendering
+   5. Delivered file manager page with upload, folder tree browsing, versions, and permission-based action controls
+   6. Delivered ONLYOFFICE iframe embedding and edit-save callback integration
+   7. Delivered admin page with admin-only routing plus users/departments/permissions/audit tables
+   8. Added component tests for chat SSE citation rendering, file permission controls, and admin guard behavior
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - tasks.json (modified)
+   - .gitignore (modified)
+   - frontend/package.json (modified)
+   - frontend/package-lock.json (created)
+   - frontend/index.html (created)
+   - frontend/tsconfig.json (created)
+   - frontend/vite.config.ts (created)
+   - frontend/src/main.tsx (modified)
+   - frontend/src/styles.css (created)
+   - frontend/src/app/router.tsx (created)
+   - frontend/src/app/shell/AppShell.tsx (created)
+   - frontend/src/components/OnlyOfficeEditor.tsx (created)
+   - frontend/src/features/common/ForbiddenPage.tsx (created)
+   - frontend/src/features/chat/ChatPage.tsx (created)
+   - frontend/src/features/chat/ChatPage.test.tsx (created)
+   - frontend/src/features/files/FileManagerPage.tsx (created)
+   - frontend/src/features/files/FileManagerPage.test.tsx (created)
+   - frontend/src/features/admin/AdminPage.tsx (created)
+   - frontend/src/features/admin/AdminRoute.test.tsx (created)
+   - frontend/src/lib/http/client.ts (created)
+   - frontend/src/lib/state/sessionStore.tsx (created)
+   - frontend/src/lib/state/queryClient.ts (created)
+   - frontend/src/test/setup.ts (created)
+   - frontend/src/test/utils.tsx (created)
+
+KEY DECISIONS:
+   - Kept backend-facing API contracts typed on the frontend and mocked non-existent admin endpoints to unblock UI delivery
+   - Implemented admin-only access at route guard layer and permission-aware controls at component layer
+   - Parsed SSE stream using fetch reader to match backend `text/event-stream` framing contract
+   - Added `filename` form field in upload contract to match backend upload endpoint requirements
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Chat page streams SSE chunks and renders citations - VERIFIED (`frontend/src/features/chat/ChatPage.tsx`, `frontend/src/features/chat/ChatPage.test.tsx`)
+   ✓ Criterion 2: File manager handles upload/version actions with permission controls - VERIFIED (`frontend/src/features/files/FileManagerPage.tsx`, `frontend/src/features/files/FileManagerPage.test.tsx`)
+   ✓ Criterion 3: Admin pages enforce admin-only access and show user/permission/audit states - VERIFIED (`frontend/src/app/router.tsx`, `frontend/src/features/admin/AdminPage.tsx`, `frontend/src/features/admin/AdminRoute.test.tsx`)
+
+TESTING RESULTS:
+   ✓ Frontend unit tests: `npm test` -> 4/4 passing
+   ✓ Frontend build: `npm run build` -> passing
+
+================================================================================
