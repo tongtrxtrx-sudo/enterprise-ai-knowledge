@@ -1,0 +1,92 @@
+================================================================================
+TASK ID: task-001
+TASK NAME: Bootstrap Runtime Skeleton
+STATUS: complete
+TIMESTAMP: 2026-03-03T14:32:35Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Compose stack must include all v2.1 services. GET /health must return 200 and
+   contain service_name and version fields. Frontend and backend containers must
+   start with validated environment variables.
+
+STEPS PROVIDED:
+   1. Create Docker Compose with nginx, frontend, backend, postgres, redis, minio, and onlyoffice
+   2. Add environment schema, reverse-proxy config, and backend health endpoint
+   3. Write failing healthcheck tests, then implement to make them green
+
+STEPS EXECUTED:
+   ✓ Step 1: Created `infra/docker-compose.yml` with nginx, frontend, backend, postgres, redis, minio, onlyoffice
+   ✓ Step 2: Added `infra/env.schema.json`, `infra/nginx/nginx.conf`, and backend `/health` endpoint
+   ✓ Step 3: Wrote failing tests first, observed failures, then implemented scaffold and re-ran tests to green
+
+WORK COMPLETED:
+   1. Added runtime compose scaffold with seven required services and baseline healthchecks
+   2. Implemented reverse-proxy routing in nginx config for `/`, `/api/`, and `/health`
+   3. Added backend FastAPI app with `/health` contract returning `service_name` and `version`
+   4. Added frontend/backend startup environment validation scripts and wired them into compose commands
+   5. Added environment documentation/schema files (`.env.example`, `infra/env.schema.json`)
+   6. Added backend test suite covering compose contract, health contract, env validation contract, and config artifacts
+
+FILES MODIFIED:
+   - .env.example (created)
+   - .gitignore (created)
+   - PROGRESS.txt (created)
+   - infra/docker-compose.yml (created)
+   - infra/nginx/nginx.conf (created)
+   - infra/env.schema.json (created)
+   - backend/pyproject.toml (created)
+   - backend/Dockerfile (created)
+   - backend/src/app/__init__.py (created)
+   - backend/src/app/main.py (created)
+   - backend/scripts/validate_env.py (created)
+   - backend/tests/conftest.py (created)
+   - backend/tests/test_compose_services.py (created)
+   - backend/tests/test_healthcheck.py (created)
+   - backend/tests/test_env_validation.py (created)
+   - backend/tests/test_runtime_config_artifacts.py (created)
+   - frontend/Dockerfile (created)
+   - frontend/package.json (created)
+   - frontend/src/main.tsx (created)
+   - frontend/src/index.html (created)
+   - frontend/scripts/validate_env.py (created)
+   - docs/scenario/compose_v21_services.md (created, then updated status)
+   - docs/scenario/backend_health_contract.md (created, then updated status)
+   - docs/scenario/container_env_validation.md (created, then updated status)
+   - docs/scenario/runtime_config_artifacts.md (created, then updated status)
+   - completed-tdd-archives/tdd-20260303-223213/step-1.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-223213/step-2.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-223213/step-3.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-223213/step-4.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-223213/step-5.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-223213/step-6.md (created via archive)
+   - completed-tdd-archives/tdd-20260303-223213/step-7.md (created via archive)
+
+KEY DECISIONS:
+   - Used minimal FastAPI backend implementation to satisfy health contract quickly and testably
+   - Used Python-based env validation scripts for both frontend and backend for consistent runtime checks
+   - Treated environment schema as dual artifacts: human-readable `.env.example` plus machine-readable JSON schema
+   - Added compose syntax verification with `docker compose --env-file .env.example ... config`
+
+BLOCKERS RESOLVED:
+   - Initial tests failed due to missing scaffold files and missing app import path; resolved by creating scaffold files and `backend/tests/conftest.py`
+
+REMAINING ISSUES:
+   - None
+
+NOTES FOR NEXT AGENT:
+   - Frontend is a runtime placeholder served by Python `http.server`; real Vite/React bootstrapping can replace it in later tasks
+   - Backend health endpoint already reads service metadata from environment variables
+   - Compose file currently includes baseline healthchecks and dependencies suitable for scaffold stage
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Compose stack includes all v2.1 services - VERIFIED (`infra/docker-compose.yml` contains nginx, frontend, backend, postgres, redis, minio, onlyoffice)
+   ✓ Criterion 2: GET /health returns 200 and contains service_name/version - VERIFIED (`backend/tests/test_healthcheck.py` passing)
+   ✓ Criterion 3: Frontend and backend containers start with validated environment variables - VERIFIED (`backend/tests/test_env_validation.py` checks compose startup commands include env validation)
+
+TESTING RESULTS:
+   ✓ Red phase: tests failed as expected before implementation
+   ✓ Unit/integration suite: `cd backend && uv run --group dev pytest tests -q` -> 9/9 passing
+   ✓ Compose contract validation: `docker compose --env-file .env.example -f infra/docker-compose.yml config` passed
+
+================================================================================

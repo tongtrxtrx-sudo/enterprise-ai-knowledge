@@ -1,0 +1,8 @@
+{
+    "name": "kb-frontend",
+    "version": "2.1.0",
+    "private": true,
+    "scripts": {
+        "start": "python /app/scripts/validate_env.py frontend && python -m http.server ${FRONTEND_PORT:-5173} --bind 0.0.0.0 --directory /app/src"
+    }
+}
