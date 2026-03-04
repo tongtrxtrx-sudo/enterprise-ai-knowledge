@@ -218,6 +218,58 @@
       },
       "skills": ["testing-safe-protocol", "verification-before-completion"],
       "complete": true
+    },
+    {
+      "task": "Integrate Real Authentication Flow",
+      "description": "Replace frontend demo session with real login, token persistence, and refresh lifecycle.",
+      "steps": [
+        { "step": 1, "description": "Add login page and session bootstrap flow from backend auth endpoints" },
+        { "step": 2, "description": "Persist access token and refresh lifecycle handling in frontend session state" },
+        { "step": 3, "description": "Protect routes with authenticated session redirects and logout handling" },
+        { "step": 4, "description": "Add tests for login success, unauthorized handling, and token refresh behavior" }
+      ],
+      "acceptance-criteria": "Users can log in via UI and access protected pages only after successful authentication. Frontend no longer relies on hardcoded demo-access-token defaults. Expired or invalid sessions redirect to login and can recover via refresh or re-login.",
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Replace Frontend Mock APIs With Backend Endpoints",
+      "description": "Remove frontend mock data paths and connect file, admin, and audit views to real backend APIs.",
+      "steps": [
+        { "step": 1, "description": "Implement missing backend endpoints required by frontend admin and file views" },
+        { "step": 2, "description": "Replace mocked client methods with real HTTP calls and typed responses" },
+        { "step": 3, "description": "Update UI loading and error states for real network behavior" },
+        { "step": 4, "description": "Add integration tests to verify end-to-end data rendering without mocks" }
+      ],
+      "acceptance-criteria": "File versions, admin users, departments, and audit states are loaded from backend APIs. Frontend client no longer contains mock return blocks for production paths. Core pages remain functional with network success and failure handling.",
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Implement Chinese-First Internationalization",
+      "description": "Introduce i18n infrastructure and convert existing English UI copy to Chinese-first bilingual resources.",
+      "steps": [
+        { "step": 1, "description": "Add i18n framework and locale resource files for zh-CN and en" },
+        { "step": 2, "description": "Replace hardcoded UI strings in chat, files, admin, and shared components" },
+        { "step": 3, "description": "Set default locale to Chinese with optional English switch" },
+        { "step": 4, "description": "Add tests to verify translation rendering and locale switch behavior" }
+      ],
+      "acceptance-criteria": "Default UI language is Chinese across major pages. English language remains available via switch or configuration. No major user-facing hardcoded English strings remain in primary workflows.",
+      "skills": ["tdd-workflow", "testing-safe-protocol"],
+      "complete": false
+    },
+    {
+      "task": "Prepare Production Configuration Baseline",
+      "description": "Create production-ready environment templates, initialization scripts, and deployment prerequisites.",
+      "steps": [
+        { "step": 1, "description": "Add .env.production.example with secure required variables and guidance" },
+        { "step": 2, "description": "Provide bootstrap script for initial admin user and essential seed records" },
+        { "step": 3, "description": "Document pre-launch checklist for secrets, storage, auth, and observability" },
+        { "step": 4, "description": "Add validation checks to prevent unsafe defaults in production startup" }
+      ],
+      "acceptance-criteria": "Project includes production env template with no insecure defaults. Operators can initialize first admin account through documented script. Runbook clearly lists must-have pre-launch checks and failure rollback basics.",
+      "skills": ["testing-safe-protocol", "verification-before-completion"],
+      "complete": false
     }
   ]
 }

@@ -1,6 +1,81 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-010
+TASK NAME: Fix Frontend Runtime Serving Placeholder Page
+STATUS: complete
+TIMESTAMP: 2026-03-03T17:18:30Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Root cause is frontend container serving `frontend/src/index.html` placeholder
+   instead of React build output. `frontend/Dockerfile` must use multi-stage
+   build (Node build dist + lightweight runtime image serving dist).
+   `infra/docker-compose.yml` frontend startup command and directory must serve
+   dist instead of src. Keep existing environment validation script logic.
+   Rebuild/restart compose with `--env-file .env.example` and verify
+   `http://127.0.0.1:8080` shows React page, not "KB Frontend Runtime Scaffold".
+
+STEPS PROVIDED:
+   1. Confirm root cause is serving `frontend/src/index.html` placeholder
+   2. Convert `frontend/Dockerfile` to multi-stage build and runtime serving dist
+   3. Update `infra/docker-compose.yml` frontend command/directory to dist
+   4. Preserve env validation script startup logic
+   5. Rebuild and restart compose with `--env-file .env.example`
+   6. Verify page at `http://127.0.0.1:8080` is React output, not scaffold text
+
+STEPS EXECUTED:
+   ✓ Step 1: Verified placeholder content exists in `frontend/src/index.html` and compose command served `/app/src`
+   ✓ Step 2: Rewrote `frontend/Dockerfile` to Node builder stage (`npm ci`, `npm run build`) + Python Alpine runtime stage serving `/app/dist`
+   ✓ Step 3: Updated frontend compose command directory from `/app/src` to `/app/dist`
+   ✓ Step 4: Kept `python /app/scripts/validate_env.py frontend` logic intact in startup command
+   ✓ Step 5: Ran `docker compose --env-file ../.env.example -f docker-compose.yml down --remove-orphans && docker compose --env-file ../.env.example -f docker-compose.yml up -d --build`
+   ✓ Step 6: Verified `http://127.0.0.1:8080` returns built React HTML and does not contain scaffold text
+
+WORK COMPLETED:
+   1. Implemented frontend multi-stage image build pipeline in `frontend/Dockerfile`
+   2. Switched frontend runtime static directory to `/app/dist` in compose command
+   3. Preserved existing env validation execution logic before server start
+   4. Rebuilt and relaunched runtime stack with `.env.example` environment file
+   5. Validated rendered HTML from nginx contains Vite dist asset links and no placeholder scaffold marker
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - frontend/Dockerfile (modified)
+   - infra/docker-compose.yml (modified)
+
+KEY DECISIONS:
+   - Used `node:20-alpine` builder stage to produce deterministic Vite `dist`
+   - Used lightweight `python:3.12-alpine` runtime stage so existing Python env validation script remains unchanged
+   - Kept compose startup command pattern (`validate_env` then `python -m http.server`) and changed only served directory to `/app/dist`
+
+BLOCKERS RESOLVED:
+   - None
+
+REMAINING ISSUES:
+   - None
+
+NOTES FOR NEXT AGENT:
+   - Frontend runtime now depends on image-built dist output, not workspace `src` files
+   - Runtime command still binds `0.0.0.0:${FRONTEND_PORT}` for container accessibility via nginx
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Root cause is serving placeholder `frontend/src/index.html` - VERIFIED (previous compose command used `--directory /app/src`; placeholder file contains "KB Frontend Runtime Scaffold")
+   ✓ Criterion 2: `frontend/Dockerfile` multi-stage build implemented - VERIFIED (Node builder stage builds dist; runtime stage serves `/app/dist`)
+   ✓ Criterion 3: `infra/docker-compose.yml` frontend command/dir serves dist - VERIFIED (`--directory /app/dist` in frontend command)
+   ✓ Criterion 4: Env validation script logic preserved - VERIFIED (`python /app/scripts/validate_env.py frontend` unchanged in compose startup)
+   ✓ Criterion 5: Compose rebuilt/restarted with `--env-file .env.example` - VERIFIED (command executed successfully, exit code 0)
+   ✓ Criterion 6: `http://127.0.0.1:8080` shows React page, not scaffold - VERIFIED (HTML includes Vite assets and placeholder text presence check returned `False`)
+
+TESTING RESULTS:
+   ✓ Compose rebuild/restart: success (`down --remove-orphans` + `up -d --build`)
+   ✓ Service status: frontend/backend/nginx and dependencies up with healthy states
+   ✓ HTTP verification: `curl -s http://127.0.0.1:8080` returns React app shell with `/assets/*.js` and `/assets/*.css`
+   ✓ Placeholder exclusion: Python check `"KB Frontend Runtime Scaffold" in html` -> `False`
+
+================================================================================
+
+================================================================================
 TASK ID: task-009
 TASK NAME: Finalize Production Delivery
 STATUS: complete

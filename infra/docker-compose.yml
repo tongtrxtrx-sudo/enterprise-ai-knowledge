@@ -28,7 +28,7 @@ services:
       [
         "sh",
         "-c",
-        "python /app/scripts/validate_env.py frontend && python -m http.server ${FRONTEND_PORT:-5173} --bind 0.0.0.0 --directory /app/src",
+        "python /app/scripts/validate_env.py frontend && python -m http.server ${FRONTEND_PORT:-5173} --bind 0.0.0.0 --directory /app/dist",
       ]
     depends_on:
       backend:
