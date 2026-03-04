@@ -1,6 +1,131 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-013
+TASK NAME: Implement Chinese-First Internationalization
+STATUS: complete
+TIMESTAMP: 2026-03-04T02:26:06Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Default UI language is Chinese across major pages. English language remains
+   available via switch or configuration. No major user-facing hardcoded
+   English strings remain in primary workflows.
+
+STEPS PROVIDED:
+   1. Add i18n framework and locale resource files for zh-CN and en
+   2. Replace hardcoded UI strings in chat, files, admin, and shared components
+   3. Set default locale to Chinese with optional English switch
+   4. Add tests to verify translation rendering and locale switch behavior
+
+STEPS EXECUTED:
+   ✓ Step 1: Added frontend i18n framework (`I18nProvider`, `useI18n`) and locale
+     resources in `frontend/src/i18n/locales/zh-CN.ts` and
+     `frontend/src/i18n/locales/en.ts`
+   ✓ Step 2: Replaced hardcoded workflow copy in chat/files/admin/login/router/
+     forbidden/editor/shell components with translation keys
+   ✓ Step 3: Set default locale to `zh-CN` and added persisted language switch
+     (`zh-CN` <-> `en`) in `AppShell`
+   ✓ Step 4: Added i18n behavior tests for default Chinese rendering, English
+     switch, and persistence; updated existing page tests to Chinese-first output
+
+WORK COMPLETED:
+   1. Implemented i18n infrastructure with key-based lookup and parameter
+      interpolation in `frontend/src/i18n/index.tsx`
+   2. Added bilingual locale dictionaries (`zh-CN` and `en`) covering app shell,
+      auth, chat, files, admin, forbidden, and editor copy
+   3. Wired i18n provider into runtime and router test utility wrappers
+   4. Localized major workflows (`ChatPage`, `FileManagerPage`, `AdminPage`,
+      `LoginPage`, `ForbiddenPage`, `OnlyOfficeEditor`, `AuthGuard`, `AppShell`)
+   5. Added locale switch UI with localStorage persistence (`kb.locale`) and
+      default Chinese fallback when no locale is configured
+   6. Added new i18n-focused tests and aligned existing integration/unit tests to
+      Chinese-first defaults
+   7. Executed strict TDD workflow artifacts and archived reports under
+      `completed-tdd-archives/tdd-20260304-102545/`
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - frontend/src/i18n/index.tsx (created)
+   - frontend/src/i18n/locales/zh-CN.ts (created)
+   - frontend/src/i18n/locales/en.ts (created)
+   - frontend/src/main.tsx (modified)
+   - frontend/src/test/utils.tsx (modified)
+   - frontend/src/app/shell/AppShell.tsx (modified)
+   - frontend/src/app/router.tsx (modified)
+   - frontend/src/features/auth/LoginPage.tsx (modified)
+   - frontend/src/features/chat/ChatPage.tsx (modified)
+   - frontend/src/features/files/FileManagerPage.tsx (modified)
+   - frontend/src/features/admin/AdminPage.tsx (modified)
+   - frontend/src/features/common/ForbiddenPage.tsx (modified)
+   - frontend/src/components/OnlyOfficeEditor.tsx (modified)
+   - frontend/src/app/i18n.infrastructure.test.tsx (created)
+   - frontend/src/features/common/chinese_first_workflow_copy.test.tsx (created)
+   - frontend/src/app/locale.switch.test.tsx (created)
+   - frontend/src/features/chat/ChatPage.test.tsx (modified)
+   - frontend/src/features/files/FileManagerPage.test.tsx (modified)
+   - frontend/src/features/files/FileManagerPage.integration.test.tsx (modified)
+   - frontend/src/features/admin/AdminPage.integration.test.tsx (modified)
+   - frontend/src/features/admin/AdminRoute.test.tsx (modified)
+   - docs/scenario/chinese_first_i18n_infrastructure.md (created, then updated status)
+   - docs/scenario/chinese_first_primary_workflow_copy.md (created, then updated status)
+   - docs/scenario/chinese_first_locale_switch.md (created, then updated status)
+   - completed-tdd-archives/tdd-20260304-102545/step-1.md (created via archive)
+   - completed-tdd-archives/tdd-20260304-102545/step-2.md (created via archive)
+   - completed-tdd-archives/tdd-20260304-102545/step-3.md (created via archive)
+   - completed-tdd-archives/tdd-20260304-102545/step-4.md (created via archive)
+   - completed-tdd-archives/tdd-20260304-102545/step-5.md (created via archive)
+   - completed-tdd-archives/tdd-20260304-102545/step-6.md (created via archive)
+   - completed-tdd-archives/tdd-20260304-102545/step-7.md (created via archive)
+
+KEY DECISIONS:
+   - Implemented in-project i18n framework to avoid extra dependency overhead and
+     keep locale behavior explicit/testable
+   - Chose `zh-CN` as hard default locale; English is opt-in via shell selector or
+     persisted `kb.locale`
+   - Standardized interpolation placeholders (`{key}`) for dynamic copy (status,
+     citation rows, version rows)
+   - Added parse-status localization mapping in file manager so backend status
+     values can render user-friendly Chinese labels by default
+
+BLOCKERS RESOLVED:
+   - None
+
+REMAINING ISSUES:
+   - None
+
+NOTES FOR NEXT AGENT:
+   - Add new translation keys to both `zh-CN.ts` and `en.ts` together to keep
+     parity
+   - If locale must be set before login page render in non-shell routes, current
+     provider already honors `kb.locale` from localStorage
+   - React Router emits future-flag warnings in tests; these are pre-existing and
+     non-blocking for i18n behavior
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Default UI language is Chinese across major pages - VERIFIED
+     (`LoginPage`, `AppShell`, `ChatPage`, `FileManagerPage`, `AdminPage`,
+     `ForbiddenPage` now render Chinese copy by default)
+   ✓ Criterion 2: English remains available via switch/configuration - VERIFIED
+     (App shell language selector switches `zh-CN`/`en` and persists `kb.locale`)
+   ✓ Criterion 3: No major user-facing hardcoded English strings remain in
+     primary workflows - VERIFIED (major workflow components now use translation
+     keys instead of literal English copy)
+
+TESTING RESULTS:
+   ✓ Red phase (expected failures before implementation):
+     `npm test -- src/app/i18n.infrastructure.test.tsx src/features/common/chinese_first_workflow_copy.test.tsx src/app/locale.switch.test.tsx`
+     -> failing as expected
+   ✓ Targeted i18n + affected page tests:
+     `npm test -- src/app/i18n.infrastructure.test.tsx src/features/common/chinese_first_workflow_copy.test.tsx src/app/locale.switch.test.tsx src/features/chat/ChatPage.test.tsx src/features/files/FileManagerPage.test.tsx src/features/files/FileManagerPage.integration.test.tsx src/features/admin/AdminPage.integration.test.tsx src/features/admin/AdminRoute.test.tsx`
+     -> 14/14 passing
+   ✓ Full frontend regression:
+     `npm test`
+     -> 18/18 passing
+
+================================================================================
+
+================================================================================
 TASK ID: task-012
 TASK NAME: Replace Frontend Mock APIs With Backend Endpoints
 STATUS: complete

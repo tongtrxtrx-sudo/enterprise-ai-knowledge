@@ -37,7 +37,7 @@ describe("admin route guard", () => {
             session: nonAdmin,
         });
 
-        expect(await screen.findByText("Forbidden")).toBeInTheDocument();
+        expect(await screen.findByText("无权限访问")).toBeInTheDocument();
     });
 
     it("allows admin user to open admin state pages", async () => {
@@ -46,9 +46,9 @@ describe("admin route guard", () => {
             session: defaultSession,
         });
 
-        expect(await screen.findByText("Admin Console")).toBeInTheDocument();
-        expect(screen.getByText("Users")).toBeInTheDocument();
-        expect(screen.getByText("Permissions")).toBeInTheDocument();
-        expect(screen.getByText("Audit")).toBeInTheDocument();
+        expect(await screen.findByText("管理控制台")).toBeInTheDocument();
+        expect(screen.getByText("用户")).toBeInTheDocument();
+        expect(screen.getByText("权限")).toBeInTheDocument();
+        expect(screen.getByText("审计")).toBeInTheDocument();
     });
 });

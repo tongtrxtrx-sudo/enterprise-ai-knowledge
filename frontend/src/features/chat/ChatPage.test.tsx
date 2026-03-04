@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ChatPage } from "./ChatPage";
+import { I18nProvider } from "../../i18n";
 import { SessionProvider, defaultSession } from "../../lib/state/sessionStore";
 
 const { streamChatMock } = vi.hoisted(() => ({
@@ -36,19 +37,21 @@ describe("ChatPage", () => {
         const user = userEvent.setup();
         renderPage();
 
-        await user.type(screen.getByLabelText("Question"), "What is in policy?");
-        await user.click(screen.getByRole("button", { name: "Send" }));
+        await user.type(screen.getByLabelText("问题"), "What is in policy?");
+        await user.click(screen.getByRole("button", { name: "发送" }));
 
         expect(await screen.findByTestId("stream-answer")).toHaveTextContent("Hello world");
-        expect(await screen.findByText("upload #3, chunk #2")).toBeInTheDocument();
-        expect(screen.getByTestId("stream-status")).toHaveTextContent("done");
+        expect(await screen.findByText("上传 #3，分块 #2")).toBeInTheDocument();
+        expect(screen.getByTestId("stream-status")).toHaveTextContent("完成");
     });
 });
 
 function renderPage() {
     return render(
-        <SessionProvider initialSession={defaultSession}>
-            <ChatPage />
-        </SessionProvider>,
+        <I18nProvider>
+            <SessionProvider initialSession={defaultSession}>
+                <ChatPage />
+            </SessionProvider>
+        </I18nProvider>,
     );
 }

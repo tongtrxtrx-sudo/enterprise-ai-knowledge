@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { OnlyOfficeEditor } from "../../components/OnlyOfficeEditor";
+import { useI18n } from "../../i18n";
 import {
     listFileVersions,
     listVisibleFiles,
@@ -15,6 +16,7 @@ import { useSession } from "../../lib/state/sessionStore";
 
 export function FileManagerPage() {
     const { session } = useSession();
+    const { t } = useI18n();
     const [folder, setFolder] = useState("/knowledge");
     const [files, setFiles] = useState<VisibleFile[]>([]);
     const [uploadStatus, setUploadStatus] = useState("idle");
@@ -47,14 +49,14 @@ export function FileManagerPage() {
                 const rows = await listVisibleFiles(session.accessToken);
                 setFiles(rows);
             } catch {
-                setLoadError("Failed to load files");
+                setLoadError(t("files.loadError"));
                 setFiles([]);
             } finally {
                 setLoadingFiles(false);
             }
         }
         void loadFiles();
-    }, [session]);
+    }, [session, t]);
 
     async function onUpload(file: File | null) {
         if (!file || !session) {
@@ -85,7 +87,7 @@ export function FileManagerPage() {
         } catch {
             setVersionErrorMap((prev) => ({
                 ...prev,
-                [fileId]: "Failed to load versions",
+                [fileId]: t("files.versionLoadError"),
             }));
         }
     }
@@ -99,7 +101,7 @@ export function FileManagerPage() {
             const edit = await startEditSession(session.accessToken, fileId);
             setEditingSession(edit);
         } catch {
-            setEditError("Failed to start edit session");
+            setEditError(t("files.editStartError"));
         }
     }
 
@@ -115,39 +117,52 @@ export function FileManagerPage() {
                 editingSession.session_token,
             );
         } catch {
-            setEditError("Failed to save edit callback");
+            setEditError(t("files.editSaveError"));
         }
+    }
+
+    const localizedUploadStatus = t(`files.uploadStatus.${uploadStatus}`);
+
+    function localizeParseStatus(status: string) {
+        const key = `files.parseStatus.${status}`;
+        const translated = t(key);
+        if (translated === key) {
+            return t("files.parseStatus.unknown");
+        }
+        return translated;
     }
 
     return (
         <div>
             <div className="card">
-                <h2>File Manager</h2>
-                <p className="muted">Upload, browse tree, and view versions with permission controls.</p>
-                <label htmlFor="folder-input">Folder</label>
+                <h2>{t("files.title")}</h2>
+                <p className="muted">{t("files.description")}</p>
+                <label htmlFor="folder-input">{t("files.folder")}</label>
                 <input
                     id="folder-input"
                     value={folder}
                     onChange={(event) => setFolder(event.target.value)}
                 />
-                <label htmlFor="file-input">Upload File</label>
+                <label htmlFor="file-input">{t("files.uploadFile")}</label>
                 <input
                     id="file-input"
                     type="file"
                     disabled={!session?.permissions.canUpload}
                     onChange={(event) => onUpload(event.target.files?.[0] ?? null)}
                 />
-                <p data-testid="upload-status">Upload status: {uploadStatus}</p>
-                {loadingFiles ? <p>Loading files...</p> : null}
+                <p data-testid="upload-status">
+                    {t("files.uploadStatus", { status: localizedUploadStatus })}
+                </p>
+                {loadingFiles ? <p>{t("files.loading")}</p> : null}
                 {loadError ? <p>{loadError}</p> : null}
                 {!session?.permissions.canUpload && (
-                    <p className="muted">Upload permission is required.</p>
+                    <p className="muted">{t("files.uploadPermissionRequired")}</p>
                 )}
                 {editError ? <p>{editError}</p> : null}
             </div>
 
             <div className="card">
-                <h3>Folder Tree</h3>
+                <h3>{t("files.folderTree")}</h3>
                 {Object.entries(groupedFiles).map(([folderName, folderFiles]) => (
                     <div key={folderName} className="card">
                         <strong>{folderName}</strong>
@@ -155,7 +170,10 @@ export function FileManagerPage() {
                             {folderFiles.map((item) => (
                                 <li key={item.id}>
                                     <div>
-                                        {item.filename} - {item.parse_status}
+                                        {t("files.fileRow", {
+                                            filename: item.filename,
+                                            status: localizeParseStatus(item.parse_status),
+                                        })}
                                     </div>
                                     <div style={{ display: "flex", gap: 8, margin: "6px 0" }}>
                                         <button
@@ -163,21 +181,24 @@ export function FileManagerPage() {
                                             disabled={!session?.permissions.canViewVersions}
                                             onClick={() => void onLoadVersions(item.id)}
                                         >
-                                            Versions
+                                            {t("files.versions")}
                                         </button>
                                         <button
                                             type="button"
                                             disabled={!session?.permissions.canEditFile}
                                             onClick={() => void onStartEdit(item.id)}
                                         >
-                                            Edit
+                                            {t("files.edit")}
                                         </button>
                                     </div>
                                     {versionMap[item.id] && (
                                         <ul data-testid={`versions-${item.id}`}>
                                             {versionMap[item.id].map((version) => (
                                                 <li key={`${item.id}-${version.version_number}`}>
-                                                    v{version.version_number} by #{version.created_by}
+                                                    {t("files.versionItem", {
+                                                        version: version.version_number,
+                                                        createdBy: version.created_by,
+                                                    })}
                                                 </li>
                                             ))}
                                         </ul>

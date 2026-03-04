@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AdminPage } from "./AdminPage";
+import { I18nProvider } from "../../i18n";
 import { SessionProvider, defaultSession } from "../../lib/state/sessionStore";
 
 function jsonResponse(payload: unknown, status = 200): Response {
@@ -50,9 +51,11 @@ describe("AdminPage integration", () => {
         });
 
         render(
-            <SessionProvider initialSession={defaultSession}>
-                <AdminPage />
-            </SessionProvider>,
+            <I18nProvider>
+                <SessionProvider initialSession={defaultSession}>
+                    <AdminPage />
+                </SessionProvider>
+            </I18nProvider>,
         );
 
         await waitFor(() => {
@@ -67,11 +70,13 @@ describe("AdminPage integration", () => {
         vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 500 }));
 
         render(
-            <SessionProvider initialSession={defaultSession}>
-                <AdminPage />
-            </SessionProvider>,
+            <I18nProvider>
+                <SessionProvider initialSession={defaultSession}>
+                    <AdminPage />
+                </SessionProvider>
+            </I18nProvider>,
         );
 
-        expect(await screen.findByText("Failed to load admin state")).toBeInTheDocument();
+        expect(await screen.findByText("管理状态加载失败")).toBeInTheDocument();
     });
 });

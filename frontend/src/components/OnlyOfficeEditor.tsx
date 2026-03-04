@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 type OnlyOfficeEditorProps = {
     iframeUrl: string;
     fileId: number;
@@ -6,10 +8,12 @@ type OnlyOfficeEditorProps = {
 };
 
 export function OnlyOfficeEditor({ iframeUrl, fileId, canSave, onSave }: OnlyOfficeEditorProps) {
+    const { t } = useI18n();
+
     return (
         <div className="card">
-            <h3>ONLYOFFICE Session</h3>
-            <p className="muted">Single-user edit session for file #{fileId}</p>
+            <h3>{t("onlyoffice.title")}</h3>
+            <p className="muted">{t("onlyoffice.description", { fileId })}</p>
             <iframe
                 title={`ONLYOFFICE-${fileId}`}
                 src={iframeUrl}
@@ -17,7 +21,7 @@ export function OnlyOfficeEditor({ iframeUrl, fileId, canSave, onSave }: OnlyOff
             />
             <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => void onSave()} disabled={!canSave}>
-                    Save Callback
+                    {t("onlyoffice.saveCallback")}
                 </button>
             </div>
         </div>

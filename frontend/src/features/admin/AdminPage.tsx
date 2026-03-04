@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { useI18n } from "../../i18n";
 import {
     listAdminUsers,
     listAuditStates,
@@ -14,6 +15,7 @@ import { useSession } from "../../lib/state/sessionStore";
 
 export function AdminPage() {
     const { session } = useSession();
+    const { t } = useI18n();
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [departments, setDepartments] = useState<DepartmentState[]>([]);
     const [permissions, setPermissions] = useState<FolderPermissionState[]>([]);
@@ -40,7 +42,7 @@ export function AdminPage() {
                 setPermissions(permissionRows);
                 setAudits(auditRows);
             } catch {
-                setError("Failed to load admin state");
+                setError(t("admin.error"));
                 setUsers([]);
                 setDepartments([]);
                 setPermissions([]);
@@ -50,28 +52,28 @@ export function AdminPage() {
             }
         }
         void loadAdminState();
-    }, [session]);
+    }, [session, t]);
 
     return (
         <div>
             <div className="card">
-                <h2>Admin Console</h2>
-                <p className="muted">Admin-only states for users, departments, permissions, and audit.</p>
-                {loading ? <p>Loading admin state...</p> : null}
+                <h2>{t("admin.title")}</h2>
+                <p className="muted">{t("admin.description")}</p>
+                {loading ? <p>{t("admin.loading")}</p> : null}
                 {error ? <p>{error}</p> : null}
             </div>
 
             <div className="grid">
                 <div className="card">
-                    <h3>Users</h3>
+                    <h3>{t("admin.users")}</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Username</th>
-                                <th>Role</th>
-                                <th>Department</th>
-                                <th>Status</th>
+                                <th>{t("admin.id")}</th>
+                                <th>{t("admin.username")}</th>
+                                <th>{t("admin.role")}</th>
+                                <th>{t("admin.department")}</th>
+                                <th>{t("admin.status")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,13 +91,13 @@ export function AdminPage() {
                 </div>
 
                 <div className="card">
-                    <h3>Departments</h3>
+                    <h3>{t("admin.departments")}</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Manager User ID</th>
-                                <th>Members</th>
+                                <th>{t("admin.name")}</th>
+                                <th>{t("admin.managerUserId")}</th>
+                                <th>{t("admin.members")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -113,14 +115,14 @@ export function AdminPage() {
 
             <div className="grid">
                 <div className="card">
-                    <h3>Permissions</h3>
+                    <h3>{t("admin.permissions")}</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Folder</th>
-                                <th>Grantee User ID</th>
-                                <th>Can Edit</th>
+                                <th>{t("admin.id")}</th>
+                                <th>{t("admin.folder")}</th>
+                                <th>{t("admin.granteeUserId")}</th>
+                                <th>{t("admin.canEdit")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,7 +131,7 @@ export function AdminPage() {
                                     <td>{item.id}</td>
                                     <td>{item.folder}</td>
                                     <td>{item.grantee_user_id}</td>
-                                    <td>{item.can_edit ? "true" : "false"}</td>
+                                    <td>{item.can_edit ? t("admin.boolean.true") : t("admin.boolean.false")}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -137,14 +139,14 @@ export function AdminPage() {
                 </div>
 
                 <div className="card">
-                    <h3>Audit</h3>
+                    <h3>{t("admin.audit")}</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Action</th>
-                                <th>Target</th>
-                                <th>Actor</th>
+                                <th>{t("admin.id")}</th>
+                                <th>{t("admin.action")}</th>
+                                <th>{t("admin.target")}</th>
+                                <th>{t("admin.actor")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -153,9 +155,12 @@ export function AdminPage() {
                                     <td>{item.id}</td>
                                     <td>{item.action}</td>
                                     <td>
-                                        {item.target_type}#{item.target_id ?? "-"}
+                                        {t("admin.targetFormat", {
+                                            type: item.target_type,
+                                            id: item.target_id ?? t("admin.targetUnknown"),
+                                        })}
                                     </td>
-                                    <td>{item.actor_user_id ?? "system"}</td>
+                                    <td>{item.actor_user_id ?? t("admin.actorSystem")}</td>
                                 </tr>
                             ))}
                         </tbody>

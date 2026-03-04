@@ -256,7 +256,7 @@
       ],
       "acceptance-criteria": "Default UI language is Chinese across major pages. English language remains available via switch or configuration. No major user-facing hardcoded English strings remain in primary workflows.",
       "skills": ["tdd-workflow", "testing-safe-protocol"],
-      "complete": false
+      "complete": true
     },
     {
       "task": "Prepare Production Configuration Baseline",

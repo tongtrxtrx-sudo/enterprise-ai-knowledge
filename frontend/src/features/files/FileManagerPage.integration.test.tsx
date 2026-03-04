@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FileManagerPage } from "./FileManagerPage";
+import { I18nProvider } from "../../i18n";
 import { SessionProvider, defaultSession } from "../../lib/state/sessionStore";
 
 function jsonResponse(payload: unknown, status = 200): Response {
@@ -59,28 +60,32 @@ describe("FileManagerPage integration", () => {
         });
 
         render(
-            <SessionProvider initialSession={defaultSession}>
-                <FileManagerPage />
-            </SessionProvider>,
+            <I18nProvider>
+                <SessionProvider initialSession={defaultSession}>
+                    <FileManagerPage />
+                </SessionProvider>
+            </I18nProvider>,
         );
 
         await waitFor(() => {
-            expect(screen.getByText("guide.md - normal")).toBeInTheDocument();
+            expect(screen.getByText("guide.md - 正常")).toBeInTheDocument();
         });
 
-        await userEvent.click(screen.getByRole("button", { name: "Versions" }));
-        expect(await screen.findByText("v2 by #1")).toBeInTheDocument();
+        await userEvent.click(screen.getByRole("button", { name: "版本" }));
+        expect(await screen.findByText("v2，创建者 #1")).toBeInTheDocument();
     });
 
     it("shows file loading error when backend request fails", async () => {
         vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 500 }));
 
         render(
-            <SessionProvider initialSession={defaultSession}>
-                <FileManagerPage />
-            </SessionProvider>,
+            <I18nProvider>
+                <SessionProvider initialSession={defaultSession}>
+                    <FileManagerPage />
+                </SessionProvider>
+            </I18nProvider>,
         );
 
-        expect(await screen.findByText("Failed to load files")).toBeInTheDocument();
+        expect(await screen.findByText("文件加载失败")).toBeInTheDocument();
     });
 });

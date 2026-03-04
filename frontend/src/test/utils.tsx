@@ -1,6 +1,7 @@
 import { render } from "@testing-library/react";
 import { RouterProvider, createMemoryRouter, type RouteObject } from "react-router-dom";
 
+import { I18nProvider } from "../i18n";
 import { SessionProvider, defaultSession, type SessionState } from "../lib/state/sessionStore";
 
 export function renderWithRouter(
@@ -18,8 +19,10 @@ export function renderWithRouter(
     });
 
     return render(
-        <SessionProvider initialSession={session}>
-            <RouterProvider router={router} />
-        </SessionProvider>,
+        <I18nProvider>
+            <SessionProvider initialSession={session}>
+                <RouterProvider router={router} />
+            </SessionProvider>
+        </I18nProvider>,
     );
 }

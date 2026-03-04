@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
+import { useI18n } from "../../i18n";
 import { HttpError } from "../../lib/http/client";
 import { useSession } from "../../lib/state/sessionStore";
 
@@ -12,6 +13,7 @@ type LoginLocationState = {
 
 export function LoginPage() {
     const { session, login } = useSession();
+    const { t } = useI18n();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
@@ -33,9 +35,9 @@ export function LoginPage() {
         } catch (error) {
             const httpError = error as HttpError;
             if (httpError?.status === 401) {
-                setErrorMessage("Invalid username or password");
+                setErrorMessage(t("login.error.invalidCredentials"));
             } else {
-                setErrorMessage("Login failed, please try again");
+                setErrorMessage(t("login.error.generic"));
             }
             setStatus("error");
         }
@@ -43,10 +45,10 @@ export function LoginPage() {
 
     return (
         <div className="card" style={{ maxWidth: 420, margin: "40px auto" }}>
-            <h2>Login</h2>
-            <p className="muted">Use your account to access the workspace.</p>
+            <h2>{t("login.title")}</h2>
+            <p className="muted">{t("login.description")}</p>
             <form onSubmit={(event) => void onSubmit(event)}>
-                <label htmlFor="username">Username</label>
+                <label htmlFor="username">{t("login.username")}</label>
                 <input
                     id="username"
                     value={username}
@@ -54,7 +56,7 @@ export function LoginPage() {
                     autoComplete="username"
                 />
 
-                <label htmlFor="password">Password</label>
+                <label htmlFor="password">{t("login.password")}</label>
                 <input
                     id="password"
                     type="password"
@@ -64,7 +66,7 @@ export function LoginPage() {
                 />
 
                 <button type="submit" disabled={status === "submitting" || !username || !password}>
-                    {status === "submitting" ? "Signing in..." : "Sign in"}
+                    {status === "submitting" ? t("login.signingIn") : t("login.signIn")}
                 </button>
             </form>
             {errorMessage ? <p role="alert">{errorMessage}</p> : null}
