@@ -1,6 +1,7 @@
 import { Navigate, Outlet, type RouteObject } from "react-router-dom";
 
 import { AdminPage } from "../features/admin/AdminPage";
+import { LoginPage } from "../features/auth/LoginPage";
 import { ChatPage } from "../features/chat/ChatPage";
 import { FileManagerPage } from "../features/files/FileManagerPage";
 import { ForbiddenPage } from "../features/common/ForbiddenPage";
@@ -8,9 +9,12 @@ import { useSession } from "../lib/state/sessionStore";
 import { AppShell } from "./shell/AppShell";
 
 export function AuthGuard() {
-    const { session } = useSession();
+    const { session, isBootstrapping } = useSession();
+    if (isBootstrapping) {
+        return <p>Loading session...</p>;
+    }
     if (!session) {
-        return <ForbiddenPage />;
+        return <Navigate to="/login" replace />;
     }
     return <Outlet />;
 }
@@ -25,6 +29,10 @@ export function AdminGuard() {
 
 export function createAppRoutes(): RouteObject[] {
     return [
+        {
+            path: "/login",
+            element: <LoginPage />,
+        },
         {
             path: "/",
             element: <AuthGuard />,

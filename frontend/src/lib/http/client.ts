@@ -91,7 +91,53 @@ export type AuditState = {
     created_at: string;
 };
 
+export type LoginRequest = {
+    username: string;
+    password: string;
+};
+
+export type TokenPairResponse = {
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+};
+
+export type SessionBootstrapResponse = {
+    user: {
+        id: number;
+        username: string;
+        role: "user" | "dept_manager" | "admin";
+        department: string;
+    };
+    permissions: {
+        can_upload: boolean;
+        can_view_versions: boolean;
+        can_edit_file: boolean;
+        can_access_admin: boolean;
+    };
+};
+
+export class HttpError extends Error {
+    status: number;
+
+    constructor(message: string, status: number) {
+        super(message);
+        this.status = status;
+    }
+}
+
+type AuthRuntime = {
+    getAccessToken: () => string | null;
+    refreshAccessToken: () => Promise<string | null>;
+    onUnauthorized: () => void;
+};
+
 const API_BASE = "/api";
+let authRuntime: AuthRuntime | null = null;
+
+export function configureAuthRuntime(runtime: AuthRuntime | null): void {
+    authRuntime = runtime;
+}
 
 function authHeaders(token: string): HeadersInit {
     return {
@@ -99,22 +145,126 @@ function authHeaders(token: string): HeadersInit {
     };
 }
 
+function mergeHeaders(base: HeadersInit, extra?: HeadersInit): Headers {
+    const headers = new Headers(base);
+    if (!extra) {
+        return headers;
+    }
+    const extraHeaders = new Headers(extra);
+    extraHeaders.forEach((value, key) => {
+        headers.set(key, value);
+    });
+    return headers;
+}
+
+function getErrorMessage(response: Response, fallback: string): string {
+    if (response.status === 401) {
+        return "Unauthorized";
+    }
+    return fallback;
+}
+
+async function requestWithAuth(
+    path: string,
+    init: RequestInit,
+    providedToken?: string,
+): Promise<Response> {
+    const token = providedToken ?? authRuntime?.getAccessToken() ?? null;
+    const firstHeaders = token
+        ? mergeHeaders(authHeaders(token), init.headers)
+        : mergeHeaders({}, init.headers);
+
+    const firstResponse = await fetch(`${API_BASE}${path}`, {
+        ...init,
+        credentials: "same-origin",
+        headers: firstHeaders,
+    });
+
+    if (firstResponse.status !== 401 || !authRuntime) {
+        return firstResponse;
+    }
+
+    const refreshedToken = await authRuntime.refreshAccessToken();
+    if (!refreshedToken) {
+        authRuntime.onUnauthorized();
+        return firstResponse;
+    }
+
+    const retryHeaders = mergeHeaders(authHeaders(refreshedToken), init.headers);
+    const retryResponse = await fetch(`${API_BASE}${path}`, {
+        ...init,
+        credentials: "same-origin",
+        headers: retryHeaders,
+    });
+    if (retryResponse.status === 401) {
+        authRuntime.onUnauthorized();
+    }
+    return retryResponse;
+}
+
+async function readJsonOrThrow<T>(response: Response, errorMessage: string): Promise<T> {
+    if (!response.ok) {
+        throw new HttpError(getErrorMessage(response, errorMessage), response.status);
+    }
+    return (await response.json()) as T;
+}
+
+export async function loginWithPassword(payload: LoginRequest): Promise<TokenPairResponse> {
+    const response = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+    });
+    return await readJsonOrThrow<TokenPairResponse>(response, "Login failed");
+}
+
+export async function refreshAccessToken(): Promise<TokenPairResponse> {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+        method: "POST",
+        credentials: "same-origin",
+    });
+    return await readJsonOrThrow<TokenPairResponse>(response, "Refresh failed");
+}
+
+export async function fetchSessionProfile(
+    token: string,
+): Promise<SessionBootstrapResponse> {
+    const response = await requestWithAuth("/auth/session", { method: "GET" }, token);
+    return await readJsonOrThrow<SessionBootstrapResponse>(response, "Session bootstrap failed");
+}
+
+export async function logoutCurrentSession(): Promise<void> {
+    const response = await fetch(`${API_BASE}/auth/logout`, {
+        method: "POST",
+        credentials: "same-origin",
+    });
+    if (!response.ok && response.status !== 401) {
+        throw new HttpError(getErrorMessage(response, "Logout failed"), response.status);
+    }
+}
+
 export async function streamChat(
     token: string,
     payload: ChatRequest,
     onEvent: (event: StreamEvent) => void,
 ): Promise<void> {
-    const response = await fetch(`${API_BASE}/chat/stream`, {
+    const response = await requestWithAuth(
+        "/chat/stream",
+        {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            ...authHeaders(token),
         },
         body: JSON.stringify(payload),
-    });
+        },
+        token,
+    );
 
     if (!response.ok || !response.body) {
-        throw new Error("Chat stream failed");
+        throw new HttpError(getErrorMessage(response, "Chat stream failed"), response.status);
     }
 
     const reader = response.body.getReader();
@@ -154,25 +304,20 @@ export async function uploadFile(
     formData.append("filename", file.name);
     formData.append("file", file);
 
-    const response = await fetch(`${API_BASE}/uploads`, {
-        method: "POST",
-        headers: authHeaders(token),
-        body: formData,
-    });
-    if (!response.ok) {
-        throw new Error("Upload failed");
-    }
-    return (await response.json()) as UploadResponse;
+    const response = await requestWithAuth(
+        "/uploads",
+        {
+            method: "POST",
+            body: formData,
+        },
+        token,
+    );
+    return await readJsonOrThrow<UploadResponse>(response, "Upload failed");
 }
 
 export async function listVisibleFiles(token: string): Promise<VisibleFile[]> {
-    const response = await fetch(`${API_BASE}/permissions/files`, {
-        headers: authHeaders(token),
-    });
-    if (!response.ok) {
-        throw new Error("File listing failed");
-    }
-    return (await response.json()) as VisibleFile[];
+    const response = await requestWithAuth("/permissions/files", { method: "GET" }, token);
+    return await readJsonOrThrow<VisibleFile[]>(response, "File listing failed");
 }
 
 // Backend version list endpoint is not implemented yet; keep mock contract stable.
@@ -198,14 +343,14 @@ export async function startEditSession(
     token: string,
     fileId: number,
 ): Promise<EditStartResponse> {
-    const response = await fetch(`${API_BASE}/files/${fileId}/edit/start`, {
-        method: "POST",
-        headers: authHeaders(token),
-    });
-    if (!response.ok) {
-        throw new Error("Start edit failed");
-    }
-    return (await response.json()) as EditStartResponse;
+    const response = await requestWithAuth(
+        `/files/${fileId}/edit/start`,
+        {
+            method: "POST",
+        },
+        token,
+    );
+    return await readJsonOrThrow<EditStartResponse>(response, "Start edit failed");
 }
 
 export async function submitEditSaveCallback(
@@ -213,20 +358,23 @@ export async function submitEditSaveCallback(
     fileId: number,
     sessionToken: string,
 ): Promise<void> {
-    const response = await fetch(`${API_BASE}/files/${fileId}/edit/callback`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...authHeaders(token),
+    const response = await requestWithAuth(
+        `/files/${fileId}/edit/callback`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                token: sessionToken,
+                status: 6,
+                content: "frontend-save-callback",
+            }),
         },
-        body: JSON.stringify({
-            token: sessionToken,
-            status: 6,
-            content: "frontend-save-callback",
-        }),
-    });
+        token,
+    );
     if (!response.ok) {
-        throw new Error("Save callback failed");
+        throw new HttpError(getErrorMessage(response, "Save callback failed"), response.status);
     }
 }
 
@@ -258,13 +406,14 @@ export async function listDepartments(_token: string): Promise<DepartmentState[]
 }
 
 export async function listFolderPermissions(token: string): Promise<FolderPermissionState[]> {
-    const response = await fetch(`${API_BASE}/admin/folder-permissions`, {
-        headers: authHeaders(token),
-    });
-    if (!response.ok) {
-        throw new Error("Permission listing failed");
-    }
-    return (await response.json()) as FolderPermissionState[];
+    const response = await requestWithAuth(
+        "/admin/folder-permissions",
+        {
+            method: "GET",
+        },
+        token,
+    );
+    return await readJsonOrThrow<FolderPermissionState[]>(response, "Permission listing failed");
 }
 
 export async function listAuditStates(_token: string): Promise<AuditState[]> {

@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Literal, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
@@ -7,9 +8,15 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_db_session
-from app.deps import require_roles
+from app.deps import get_current_user, require_roles
 from app.models import RefreshTokenBlacklist, User
-from app.schemas.auth import LoginRequest, TokenPairResponse
+from app.schemas.auth import (
+    LoginRequest,
+    SessionPermissionsResponse,
+    SessionStateResponse,
+    SessionUserResponse,
+    TokenPairResponse,
+)
 from app.security import (
     decode_token,
     issue_access_token,
@@ -21,15 +28,27 @@ from app.security import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _build_permissions(role: str) -> dict[str, bool]:
+    return {
+        "can_upload": True,
+        "can_view_versions": True,
+        "can_edit_file": True,
+        "can_access_admin": role == "admin",
+    }
+
+
 def _set_refresh_cookie(response: Response, refresh_token: str) -> None:
     settings = get_settings()
+    same_site = cast(
+        Literal["lax", "strict", "none"], settings.refresh_cookie_samesite.lower()
+    )
     response.set_cookie(
         key=settings.refresh_cookie_name,
         value=refresh_token,
         max_age=settings.refresh_token_ttl_seconds,
         httponly=settings.refresh_cookie_httponly,
         secure=settings.refresh_cookie_secure,
-        samesite=settings.refresh_cookie_samesite,
+        samesite=same_site,
         path="/",
     )
 
@@ -183,6 +202,19 @@ def logout(
     settings = get_settings()
     response.delete_cookie(settings.refresh_cookie_name, path="/")
     return {"status": "logged_out"}
+
+
+@router.get("/session", response_model=SessionStateResponse)
+def session_state(user: User = Depends(get_current_user)) -> SessionStateResponse:
+    return SessionStateResponse(
+        user=SessionUserResponse(
+            id=user.id,
+            username=user.username,
+            role=user.role,
+            department=user.department,
+        ),
+        permissions=SessionPermissionsResponse(**_build_permissions(user.role)),
+    )
 
 
 @router.get("/admin-only")

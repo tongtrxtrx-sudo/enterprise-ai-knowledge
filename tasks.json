@@ -230,7 +230,7 @@
       ],
       "acceptance-criteria": "Users can log in via UI and access protected pages only after successful authentication. Frontend no longer relies on hardcoded demo-access-token defaults. Expired or invalid sessions redirect to login and can recover via refresh or re-login.",
       "skills": ["tdd-workflow", "testing-safe-protocol"],
-      "complete": false
+      "complete": true
     },
     {
       "task": "Replace Frontend Mock APIs With Backend Endpoints",

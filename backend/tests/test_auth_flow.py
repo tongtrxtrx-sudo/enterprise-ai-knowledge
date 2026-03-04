@@ -152,3 +152,20 @@ def test_role_check_rejects_unauthorized_user_by_default(auth_context) -> None:
         "/auth/admin-only", headers={"Authorization": f"Bearer {access_token}"}
     )
     assert forbidden.status_code == 403
+
+
+def test_session_returns_user_and_permission_state(auth_context) -> None:
+    client, _, _, _ = auth_context
+    login = client.post(
+        "/auth/login", json={"username": "root", "password": "admin123"}
+    )
+    access_token = login.json()["access_token"]
+
+    response = client.get(
+        "/auth/session", headers={"Authorization": f"Bearer {access_token}"}
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["user"]["username"] == "root"
+    assert payload["user"]["role"] == "admin"
+    assert payload["permissions"]["can_access_admin"] is True

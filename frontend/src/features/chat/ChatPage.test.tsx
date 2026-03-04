@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ChatPage } from "./ChatPage";
-import { SessionProvider } from "../../lib/state/sessionStore";
+import { SessionProvider, defaultSession } from "../../lib/state/sessionStore";
 
 const { streamChatMock } = vi.hoisted(() => ({
     streamChatMock: vi.fn(),
@@ -47,7 +47,7 @@ describe("ChatPage", () => {
 
 function renderPage() {
     return render(
-        <SessionProvider>
+        <SessionProvider initialSession={defaultSession}>
             <ChatPage />
         </SessionProvider>,
     );
