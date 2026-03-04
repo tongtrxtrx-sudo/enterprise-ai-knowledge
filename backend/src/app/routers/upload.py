@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from hashlib import sha256
 
 from fastapi import (
@@ -18,7 +19,7 @@ from app.config import get_settings
 from app.db import get_db_session
 from app.deps import get_current_user
 from app.indexing.tasks import run_parse_pipeline
-from app.models import UploadRecord, User
+from app.models import FileRecord, FileVersion, UploadRecord, User
 from app.permissions.service import can_user_view_upload
 from app.schemas.upload import UploadSuccessResponse, UploadVersionResponse
 from app.upload_validation import has_executable_signature, is_safe_filename
@@ -47,6 +48,7 @@ async def create_upload(
     filename: str = Form(...),
     file: UploadFile = File(...),
     session: Session = Depends(get_db_session),
+    user: User = Depends(get_current_user),
 ) -> UploadSuccessResponse:
     settings = get_settings()
     content = await file.read()
@@ -104,6 +106,7 @@ async def create_upload(
 
     record = UploadRecord(
         folder=folder,
+        owner_id=user.id,
         filename=filename,
         version=version,
         checksum_sha256=checksum_sha256,
@@ -115,6 +118,31 @@ async def create_upload(
     session.add(record)
     session.commit()
     session.refresh(record)
+
+    # Keep editing flow compatible with file-manager IDs by creating a
+    # corresponding file and initial version keyed by upload id.
+    now = datetime.now(UTC)
+    file_row = FileRecord(
+        id=record.id,
+        filename=record.filename,
+        owner_id=user.id,
+        department=user.department,
+        current_version=1,
+        parse_status="processing",
+        created_at=now,
+        updated_at=now,
+    )
+    session.add(file_row)
+    session.flush()
+    session.add(
+        FileVersion(
+            file_id=file_row.id,
+            version_number=1,
+            content=record.source_text,
+            created_by=user.id,
+        )
+    )
+    session.commit()
 
     background_tasks.add_task(schedule_parse_task, record.id, record.object_key)
 
