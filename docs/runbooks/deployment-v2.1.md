@@ -3,7 +3,7 @@
 ## Scope
 
 - Services: `nginx`, `frontend`, `backend`, `postgres`, `redis`, `minio`, `onlyoffice`
-- Environment file: `.env.example` (replace with production values before deployment)
+- Environment file: `.env.production` (generated from `.env.production.example`)
 - Compose file: `infra/docker-compose.yml`
 
 ## Prerequisites
@@ -11,6 +11,7 @@
 1. Docker Engine and Docker Compose v2 are installed.
 2. Runtime variables are prepared in a deployment `.env` file.
 3. Operator has shell access on the deployment host.
+4. Pre-launch checklist is completed: `docs/runbooks/pre-launch-checklist.md`.
 
 ## Deployment Steps
 

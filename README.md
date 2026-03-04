@@ -66,6 +66,7 @@ npm run build
 - 发布说明：`docs/release-notes-v2.1.md`
 - PR 描述样例：`docs/pr-description-v2.1.md`
 - 部署 runbook：`docs/runbooks/deployment-v2.1.md`
+- 预发布检查：`docs/runbooks/pre-launch-checklist.md`
 - 事故响应：`docs/runbooks/incident-response.md`
 
 ## 版本

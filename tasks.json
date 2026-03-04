@@ -269,7 +269,7 @@
       ],
       "acceptance-criteria": "Project includes production env template with no insecure defaults. Operators can initialize first admin account through documented script. Runbook clearly lists must-have pre-launch checks and failure rollback basics.",
       "skills": ["testing-safe-protocol", "verification-before-completion"],
-      "complete": false
+      "complete": true
     }
   ]
 }

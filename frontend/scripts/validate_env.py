@@ -3,9 +3,30 @@ import sys
 
 
 REQUIRED_VARS = {
-    "backend": ["BACKEND_SERVICE_NAME", "BACKEND_VERSION"],
     "frontend": ["FRONTEND_PUBLIC_APP_NAME", "FRONTEND_PORT"],
 }
+
+
+def validate_environment(target: str) -> list[str]:
+    required = REQUIRED_VARS.get(target)
+    if required is None:
+        return [f"Unknown target: {target}"]
+
+    missing = [key for key in required if not os.getenv(key)]
+    if missing:
+        return [
+            f"Missing required environment variables for {target}: {', '.join(missing)}"
+        ]
+
+    if os.getenv("APP_ENV", "development").strip().lower() == "production":
+        app_name = os.getenv("FRONTEND_PUBLIC_APP_NAME", "").strip().lower()
+        if app_name in {"kb-frontend", "demo-app", "change-me"}:
+            return [
+                "Unsafe frontend app name detected in production. "
+                "Set FRONTEND_PUBLIC_APP_NAME to your deployment-specific value."
+            ]
+
+    return []
 
 
 def main() -> int:
@@ -14,16 +35,14 @@ def main() -> int:
         return 2
 
     target = sys.argv[1]
-    required = REQUIRED_VARS.get(target)
-    if required is None:
-        print(f"Unknown target: {target}")
+    errors = validate_environment(target)
+    if errors and errors[0].startswith("Unknown target:"):
+        print(errors[0])
         return 2
 
-    missing = [key for key in required if not os.getenv(key)]
-    if missing:
-        print(
-            f"Missing required environment variables for {target}: {', '.join(missing)}"
-        )
+    if errors:
+        for error in errors:
+            print(error)
         return 1
 
     print(f"Environment validated for {target}")

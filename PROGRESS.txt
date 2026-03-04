@@ -1,6 +1,109 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-014
+TASK NAME: Prepare Production Configuration Baseline
+STATUS: complete
+TIMESTAMP: 2026-03-04T02:37:49Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   Project includes production env template with no insecure defaults. Operators
+   can initialize first admin account through documented script. Runbook clearly
+   lists must-have pre-launch checks and failure rollback basics.
+
+STEPS PROVIDED:
+   1. Add .env.production.example with secure required variables and guidance
+   2. Provide bootstrap script for initial admin user and essential seed records
+   3. Document pre-launch checklist for secrets, storage, auth, and observability
+   4. Add validation checks to prevent unsafe defaults in production startup
+
+STEPS EXECUTED:
+   ✓ Step 1: Added `.env.production.example` with production-only placeholders,
+     strict auth/storage secrets, and bootstrap operator variables
+   ✓ Step 2: Added bootstrap flow in `backend/src/app/bootstrap.py` and
+     executable script `backend/scripts/bootstrap_admin.py` for first admin setup
+     and seed audit creation
+   ✓ Step 3: Added `docs/runbooks/pre-launch-checklist.md` covering secrets,
+     storage, auth bootstrap, observability gates, and rollback basics
+   ✓ Step 4: Added shared backend env validation module and startup checks that
+     reject insecure defaults when `APP_ENV=production`
+
+WORK COMPLETED:
+   1. Created production environment template `.env.production.example` with no
+      development defaults and explicit secure placeholders
+   2. Expanded `.env.example` and `infra/docker-compose.yml` environment wiring
+      so backend startup validation receives auth/storage/ONLYOFFICE security vars
+   3. Added backend production guardrails in `app.env_validation` and integrated
+      them into `backend/scripts/validate_env.py`
+   4. Added admin bootstrap service + CLI script to create/promote admin,
+      optionally rotate password, and seed bootstrap audit record
+   5. Added pre-launch runbook checklist and linked it from deployment docs/README
+   6. Added backend tests to verify env guardrails, bootstrap behavior,
+      production template constraints, and runbook/script presence
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - .env.production.example (created)
+   - .env.example (modified)
+   - infra/docker-compose.yml (modified)
+   - backend/src/app/env_validation.py (created)
+   - backend/scripts/validate_env.py (modified)
+   - frontend/scripts/validate_env.py (modified)
+   - backend/src/app/bootstrap.py (created)
+   - backend/scripts/bootstrap_admin.py (created)
+   - docs/runbooks/pre-launch-checklist.md (created)
+   - docs/runbooks/deployment-v2.1.md (modified)
+   - README.md (modified)
+   - backend/tests/test_production_baseline.py (created)
+
+KEY DECISIONS:
+   - Enforced production safety gate via `APP_ENV=production` to keep development
+     defaults usable locally while hard-failing unsafe production startup
+   - Treated insecure defaults (`dev-secret-change-me`, `kb_dev_password`,
+     `minioadmin`, disabled ONLYOFFICE JWT) as explicit production blockers
+   - Implemented bootstrap as idempotent upsert: create admin if missing, promote
+     existing user to admin, and rotate password only when requested
+   - Seeded essential bootstrap audit record (`bootstrap_admin_initialized`) to
+     provide an observable initialization trace
+
+BLOCKERS RESOLVED:
+   - None
+
+REMAINING ISSUES:
+   - None
+
+NOTES FOR NEXT AGENT:
+   - Use `.env.production.example` as template and set `APP_ENV=production` in
+     production env files to activate strict startup checks
+   - Backend startup now expects `DATABASE_URL` and `JWT_SECRET` to be present in
+     env wiring; compose already passes them from env file
+   - Bootstrap script enforces password complexity (>=14 chars and mixed classes)
+     and supports `--rotate-password` for credential rotation
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: Project includes production env template with no insecure
+     defaults - VERIFIED (`.env.production.example` uses secure placeholders and
+     excludes dev defaults; artifact assertions in
+     `backend/tests/test_production_baseline.py`)
+   ✓ Criterion 2: Operators can initialize first admin account through documented
+     script - VERIFIED (`backend/scripts/bootstrap_admin.py` documented in
+     `docs/runbooks/pre-launch-checklist.md`; bootstrap flow tested in
+     `backend/tests/test_production_baseline.py`)
+   ✓ Criterion 3: Runbook clearly lists must-have pre-launch checks and failure
+     rollback basics - VERIFIED (`docs/runbooks/pre-launch-checklist.md` sections
+     cover secrets/storage/auth/observability and rollback procedure)
+
+TESTING RESULTS:
+   ✓ Targeted baseline suite:
+     `uv run --group dev pytest tests/test_production_baseline.py -q` -> 5/5 passing
+   ✓ Startup guard sanity checks:
+     `python scripts/validate_env.py backend` with development env -> success;
+     production env with unsafe defaults -> validation errors emitted as expected
+
+================================================================================
+
+================================================================================
 TASK ID: task-013
 TASK NAME: Implement Chinese-First Internationalization
 STATUS: complete
