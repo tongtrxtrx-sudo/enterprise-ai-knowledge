@@ -19,12 +19,15 @@ export function AdminPage() {
     const [permissions, setPermissions] = useState<FolderPermissionState[]>([]);
     const [audits, setAudits] = useState<AuditState[]>([]);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         async function loadAdminState() {
             if (!session) {
                 return;
             }
+            setLoading(true);
+            setError("");
             try {
                 const [userRows, deptRows, permissionRows, auditRows] = await Promise.all([
                     listAdminUsers(session.accessToken),
@@ -38,6 +41,12 @@ export function AdminPage() {
                 setAudits(auditRows);
             } catch {
                 setError("Failed to load admin state");
+                setUsers([]);
+                setDepartments([]);
+                setPermissions([]);
+                setAudits([]);
+            } finally {
+                setLoading(false);
             }
         }
         void loadAdminState();
@@ -48,6 +57,7 @@ export function AdminPage() {
             <div className="card">
                 <h2>Admin Console</h2>
                 <p className="muted">Admin-only states for users, departments, permissions, and audit.</p>
+                {loading ? <p>Loading admin state...</p> : null}
                 {error ? <p>{error}</p> : null}
             </div>
 

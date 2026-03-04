@@ -6,6 +6,7 @@ from fastapi import (
     Depends,
     File,
     Form,
+    HTTPException,
     UploadFile,
     status,
 )
@@ -15,9 +16,11 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import get_db_session
+from app.deps import get_current_user
 from app.indexing.tasks import run_parse_pipeline
-from app.models import UploadRecord
-from app.schemas.upload import UploadSuccessResponse
+from app.models import UploadRecord, User
+from app.permissions.service import can_user_view_upload
+from app.schemas.upload import UploadSuccessResponse, UploadVersionResponse
 from app.upload_validation import has_executable_signature, is_safe_filename
 
 
@@ -125,3 +128,34 @@ async def create_upload(
         object_key=record.object_key,
         parse_status=record.parse_status,
     )
+
+
+@router.get("/{upload_id}/versions", response_model=list[UploadVersionResponse])
+def list_upload_versions(
+    upload_id: int,
+    session: Session = Depends(get_db_session),
+    user: User = Depends(get_current_user),
+) -> list[UploadVersionResponse]:
+    upload = session.scalar(select(UploadRecord).where(UploadRecord.id == upload_id))
+    if upload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    if not can_user_view_upload(session, user, upload):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+    rows = session.scalars(
+        select(UploadRecord)
+        .where(
+            UploadRecord.folder == upload.folder,
+            UploadRecord.filename == upload.filename,
+        )
+        .order_by(UploadRecord.version.desc())
+    ).all()
+    return [
+        UploadVersionResponse(
+            version_number=row.version,
+            created_by=row.owner_id,
+            created_at=row.created_at.isoformat(),
+        )
+        for row in rows
+    ]

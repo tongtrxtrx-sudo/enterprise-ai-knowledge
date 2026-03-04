@@ -19,7 +19,11 @@ export function FileManagerPage() {
     const [files, setFiles] = useState<VisibleFile[]>([]);
     const [uploadStatus, setUploadStatus] = useState("idle");
     const [versionMap, setVersionMap] = useState<Record<number, FileVersionItem[]>>({});
+    const [versionErrorMap, setVersionErrorMap] = useState<Record<number, string>>({});
     const [editingSession, setEditingSession] = useState<EditStartResponse | null>(null);
+    const [loadingFiles, setLoadingFiles] = useState(false);
+    const [loadError, setLoadError] = useState("");
+    const [editError, setEditError] = useState("");
 
     const groupedFiles = useMemo(() => {
         return files.reduce<Record<string, VisibleFile[]>>((acc, item) => {
@@ -37,8 +41,17 @@ export function FileManagerPage() {
             if (!session) {
                 return;
             }
-            const rows = await listVisibleFiles(session.accessToken);
-            setFiles(rows);
+            setLoadingFiles(true);
+            setLoadError("");
+            try {
+                const rows = await listVisibleFiles(session.accessToken);
+                setFiles(rows);
+            } catch {
+                setLoadError("Failed to load files");
+                setFiles([]);
+            } finally {
+                setLoadingFiles(false);
+            }
         }
         void loadFiles();
     }, [session]);
@@ -62,30 +75,48 @@ export function FileManagerPage() {
         if (!session) {
             return;
         }
-        const rows = await listFileVersions(session.accessToken, fileId);
-        setVersionMap((prev) => ({
-            ...prev,
-            [fileId]: rows,
-        }));
+        setVersionErrorMap((prev) => ({ ...prev, [fileId]: "" }));
+        try {
+            const rows = await listFileVersions(session.accessToken, fileId);
+            setVersionMap((prev) => ({
+                ...prev,
+                [fileId]: rows,
+            }));
+        } catch {
+            setVersionErrorMap((prev) => ({
+                ...prev,
+                [fileId]: "Failed to load versions",
+            }));
+        }
     }
 
     async function onStartEdit(fileId: number) {
         if (!session) {
             return;
         }
-        const edit = await startEditSession(session.accessToken, fileId);
-        setEditingSession(edit);
+        setEditError("");
+        try {
+            const edit = await startEditSession(session.accessToken, fileId);
+            setEditingSession(edit);
+        } catch {
+            setEditError("Failed to start edit session");
+        }
     }
 
     async function onSaveEdit() {
         if (!session || !editingSession) {
             return;
         }
-        await submitEditSaveCallback(
-            session.accessToken,
-            editingSession.file_id,
-            editingSession.session_token,
-        );
+        setEditError("");
+        try {
+            await submitEditSaveCallback(
+                session.accessToken,
+                editingSession.file_id,
+                editingSession.session_token,
+            );
+        } catch {
+            setEditError("Failed to save edit callback");
+        }
     }
 
     return (
@@ -107,9 +138,12 @@ export function FileManagerPage() {
                     onChange={(event) => onUpload(event.target.files?.[0] ?? null)}
                 />
                 <p data-testid="upload-status">Upload status: {uploadStatus}</p>
+                {loadingFiles ? <p>Loading files...</p> : null}
+                {loadError ? <p>{loadError}</p> : null}
                 {!session?.permissions.canUpload && (
                     <p className="muted">Upload permission is required.</p>
                 )}
+                {editError ? <p>{editError}</p> : null}
             </div>
 
             <div className="card">
@@ -148,6 +182,7 @@ export function FileManagerPage() {
                                             ))}
                                         </ul>
                                     )}
+                                    {versionErrorMap[item.id] ? <p>{versionErrorMap[item.id]}</p> : null}
                                 </li>
                             ))}
                         </ul>

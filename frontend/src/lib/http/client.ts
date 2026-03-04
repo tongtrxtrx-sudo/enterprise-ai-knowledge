@@ -320,23 +320,18 @@ export async function listVisibleFiles(token: string): Promise<VisibleFile[]> {
     return await readJsonOrThrow<VisibleFile[]>(response, "File listing failed");
 }
 
-// Backend version list endpoint is not implemented yet; keep mock contract stable.
 export async function listFileVersions(
-    _token: string,
+    token: string,
     fileId: number,
 ): Promise<FileVersionItem[]> {
-    return [
+    const response = await requestWithAuth(
+        `/uploads/${fileId}/versions`,
         {
-            version_number: 1,
-            created_by: 1,
-            created_at: "2026-03-03T14:00:00Z",
+            method: "GET",
         },
-        {
-            version_number: 2,
-            created_by: 1,
-            created_at: "2026-03-03T15:00:00Z",
-        },
-    ].map((item) => ({ ...item, version_number: item.version_number + fileId % 2 }));
+        token,
+    );
+    return await readJsonOrThrow<FileVersionItem[]>(response, "Version listing failed");
 }
 
 export async function startEditSession(
@@ -378,31 +373,26 @@ export async function submitEditSaveCallback(
     }
 }
 
-// Mocked admin data contracts. Backend endpoints are pending for these resources.
-export async function listAdminUsers(_token: string): Promise<AdminUser[]> {
-    return [
+export async function listAdminUsers(token: string): Promise<AdminUser[]> {
+    const response = await requestWithAuth(
+        "/admin/users",
         {
-            id: 1,
-            username: "admin",
-            role: "admin",
-            department: "knowledge",
-            status: "active",
+            method: "GET",
         },
-        {
-            id: 2,
-            username: "manager.ops",
-            role: "dept_manager",
-            department: "operations",
-            status: "active",
-        },
-    ];
+        token,
+    );
+    return await readJsonOrThrow<AdminUser[]>(response, "User listing failed");
 }
 
-export async function listDepartments(_token: string): Promise<DepartmentState[]> {
-    return [
-        { name: "knowledge", manager_user_id: 1, member_count: 4 },
-        { name: "operations", manager_user_id: 2, member_count: 6 },
-    ];
+export async function listDepartments(token: string): Promise<DepartmentState[]> {
+    const response = await requestWithAuth(
+        "/admin/departments",
+        {
+            method: "GET",
+        },
+        token,
+    );
+    return await readJsonOrThrow<DepartmentState[]>(response, "Department listing failed");
 }
 
 export async function listFolderPermissions(token: string): Promise<FolderPermissionState[]> {
@@ -416,23 +406,13 @@ export async function listFolderPermissions(token: string): Promise<FolderPermis
     return await readJsonOrThrow<FolderPermissionState[]>(response, "Permission listing failed");
 }
 
-export async function listAuditStates(_token: string): Promise<AuditState[]> {
-    return [
+export async function listAuditStates(token: string): Promise<AuditState[]> {
+    const response = await requestWithAuth(
+        "/admin/audit-states",
         {
-            id: 201,
-            actor_user_id: 1,
-            action: "folder_permission_updated",
-            target_type: "folder_permission",
-            target_id: 10,
-            created_at: "2026-03-03T15:22:00Z",
+            method: "GET",
         },
-        {
-            id: 202,
-            actor_user_id: 1,
-            action: "upload_visibility_updated",
-            target_type: "upload",
-            target_id: 77,
-            created_at: "2026-03-03T15:24:00Z",
-        },
-    ];
+        token,
+    );
+    return await readJsonOrThrow<AuditState[]>(response, "Audit state listing failed");
 }

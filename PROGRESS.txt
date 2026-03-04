@@ -1,6 +1,108 @@
 ================================================================================
 
 ================================================================================
+TASK ID: task-012
+TASK NAME: Replace Frontend Mock APIs With Backend Endpoints
+STATUS: complete
+TIMESTAMP: 2026-03-04T02:05:30Z
+WORKER AGENT: Worker-v2
+================================================================================
+OBJECTIVE (Acceptance Criteria):
+   File versions, admin users, departments, and audit states are loaded from
+   backend APIs. Frontend client no longer contains mock return blocks for
+   production paths. Core pages remain functional with network success and
+   failure handling.
+
+STEPS PROVIDED:
+   1. Implement missing backend endpoints required by frontend admin and file views
+   2. Replace mocked client methods with real HTTP calls and typed responses
+   3. Update UI loading and error states for real network behavior
+   4. Add integration tests to verify end-to-end data rendering without mocks
+
+STEPS EXECUTED:
+   ✓ Step 1: Added backend endpoints `GET /uploads/{upload_id}/versions`,
+     `GET /admin/users`, `GET /admin/departments`, and `GET /admin/audit-states`
+   ✓ Step 2: Replaced frontend client mock-return methods with authenticated
+     HTTP calls for versions/users/departments/audit
+   ✓ Step 3: Added loading/error handling in file and admin pages for network
+     success/failure states
+   ✓ Step 4: Added backend + frontend integration tests that exercise real
+     client HTTP path behavior (without mocking client modules)
+
+WORK COMPLETED:
+   1. Added admin state response schemas and admin read endpoints backed by
+      database records
+   2. Added upload versions endpoint with permission checks and typed payload
+   3. Replaced mocked frontend HTTP client methods (`listFileVersions`,
+      `listAdminUsers`, `listDepartments`, `listAuditStates`) with real API calls
+   4. Added UI loading/error states to `FileManagerPage` and `AdminPage`
+   5. Added backend tests for new admin/file-version endpoints and auth guards
+   6. Added frontend integration tests validating data rendering and failure UX
+
+FILES MODIFIED:
+   - PROGRESS.txt (modified)
+   - backend/src/app/routers/admin.py (modified)
+   - backend/src/app/routers/upload.py (modified)
+   - backend/src/app/schemas/upload.py (modified)
+   - backend/src/app/schemas/admin.py (created)
+   - backend/tests/admin/test_admin_state_endpoints.py (created)
+   - backend/tests/test_upload_versions_api.py (created)
+   - frontend/src/lib/http/client.ts (modified)
+   - frontend/src/features/files/FileManagerPage.tsx (modified)
+   - frontend/src/features/admin/AdminPage.tsx (modified)
+   - frontend/src/features/admin/AdminPage.integration.test.tsx (created)
+   - frontend/src/features/files/FileManagerPage.integration.test.tsx (created)
+
+KEY DECISIONS:
+   - Implemented versions API on upload resource (`/uploads/{id}/versions`) to
+     align file manager row IDs with backend identifiers
+   - Kept admin state endpoints read-only and admin-guarded via existing
+     `require_roles("admin")` dependency
+   - Derived department aggregate state (member count + manager) directly from
+     users table to avoid introducing new persistence models
+   - Added explicit page-level loading/error messages so network failures are
+     visible and non-silent
+
+BLOCKERS RESOLVED:
+   - Frontend integration assertion collisions for repeated table text were
+     resolved by using deterministic unique assertions
+
+REMAINING ISSUES:
+   - `FileManagerPage` edit flow still targets `/files/{id}/edit/*` while listed
+     rows are upload records; version loading is now backend-backed, but edit-flow
+     ID mapping remains an existing architectural gap outside this task scope
+
+NOTES FOR NEXT AGENT:
+   - If edit actions must work from upload rows, add explicit mapping endpoint or
+     migrate file manager list to `files` domain IDs
+   - Department manager selection currently picks first `dept_manager` by
+     ascending user ID per department
+
+ACCEPTANCE CRITERIA VERIFICATION:
+   ✓ Criterion 1: File versions, admin users, departments, and audit states are
+     loaded from backend APIs - VERIFIED (`backend/src/app/routers/upload.py`,
+     `backend/src/app/routers/admin.py`, `frontend/src/lib/http/client.ts`)
+   ✓ Criterion 2: Frontend client no longer contains mock return blocks for
+     production paths - VERIFIED (`frontend/src/lib/http/client.ts` has no
+     hardcoded version/admin/departments/audit arrays)
+   ✓ Criterion 3: Core pages remain functional with network success and failure
+     handling - VERIFIED (`frontend/src/features/files/FileManagerPage.tsx`,
+     `frontend/src/features/admin/AdminPage.tsx`, integration tests)
+
+TESTING RESULTS:
+   ✓ Backend targeted regression:
+     `uv run --group dev pytest tests/admin/test_role_guard.py tests/permissions/test_governance.py tests/test_upload_flow.py tests/test_upload_versions_api.py tests/admin/test_admin_state_endpoints.py -q`
+     -> 15/15 passing
+   ✓ Frontend integration + page suite:
+     `npm test -- src/features/admin/AdminPage.integration.test.tsx src/features/files/FileManagerPage.integration.test.tsx src/features/files/FileManagerPage.test.tsx src/features/admin/AdminRoute.test.tsx`
+     -> 7/7 passing
+   ✓ Backend new-endpoint suite:
+     `uv run --group dev pytest tests/admin/test_admin_state_endpoints.py tests/test_upload_versions_api.py -q`
+     -> 4/4 passing
+
+================================================================================
+
+================================================================================
 TASK ID: task-010
 TASK NAME: Fix Frontend Runtime Serving Placeholder Page
 STATUS: complete

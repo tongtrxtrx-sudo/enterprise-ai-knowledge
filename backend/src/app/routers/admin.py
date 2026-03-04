@@ -1,17 +1,22 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db import get_db_session
 from app.deps import require_roles
-from app.models import FolderPermission, UploadRecord, User
+from app.models import AuditLog, FolderPermission, UploadRecord, User
 from app.permissions.service import (
     sync_folder_read_allow,
     sync_upload_read_allow,
     write_audit_log,
+)
+from app.schemas.admin import (
+    AdminUserResponse,
+    AuditStateResponse,
+    DepartmentStateResponse,
 )
 from app.schemas.permissions import (
     FolderPermissionCreateRequest,
@@ -22,6 +27,73 @@ from app.schemas.permissions import (
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+@router.get("/users", response_model=list[AdminUserResponse])
+def list_admin_users(
+    session: Session = Depends(get_db_session),
+    _: User = Depends(require_roles("admin")),
+) -> list[AdminUserResponse]:
+    rows = session.scalars(select(User).order_by(User.id.asc())).all()
+    return [
+        AdminUserResponse(
+            id=row.id,
+            username=row.username,
+            role=row.role,
+            department=row.department,
+            status="active",
+        )
+        for row in rows
+    ]
+
+
+@router.get("/departments", response_model=list[DepartmentStateResponse])
+def list_departments(
+    session: Session = Depends(get_db_session),
+    _: User = Depends(require_roles("admin")),
+) -> list[DepartmentStateResponse]:
+    department_counts = session.execute(
+        select(User.department, func.count(User.id)).group_by(User.department)
+    ).all()
+
+    manager_by_department = {
+        row.department: row.id
+        for row in session.scalars(
+            select(User)
+            .where(User.role == "dept_manager")
+            .order_by(User.department.asc(), User.id.asc())
+        )
+    }
+
+    return [
+        DepartmentStateResponse(
+            name=str(department),
+            manager_user_id=manager_by_department.get(str(department), 0),
+            member_count=int(member_count),
+        )
+        for department, member_count in sorted(
+            department_counts, key=lambda item: item[0]
+        )
+    ]
+
+
+@router.get("/audit-states", response_model=list[AuditStateResponse])
+def list_audit_states(
+    session: Session = Depends(get_db_session),
+    _: User = Depends(require_roles("admin")),
+) -> list[AuditStateResponse]:
+    rows = session.scalars(select(AuditLog).order_by(AuditLog.id.desc())).all()
+    return [
+        AuditStateResponse(
+            id=row.id,
+            actor_user_id=row.actor_user_id,
+            action=row.action,
+            target_type=row.target_type,
+            target_id=row.target_id,
+            created_at=row.created_at.isoformat(),
+        )
+        for row in rows
+    ]
 
 
 @router.post(

@@ -243,7 +243,7 @@
       ],
       "acceptance-criteria": "File versions, admin users, departments, and audit states are loaded from backend APIs. Frontend client no longer contains mock return blocks for production paths. Core pages remain functional with network success and failure handling.",
       "skills": ["tdd-workflow", "testing-safe-protocol"],
-      "complete": false
+      "complete": true
     },
     {
       "task": "Implement Chinese-First Internationalization",
